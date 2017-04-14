@@ -240,7 +240,7 @@ class Pimcore5Requirements extends RequirementCollection
         }
     }
 
-    protected  function addIntlRequirements()
+    protected function addIntlRequirements()
     {
         // in some WAMP server installations, new Collator() returns null
         $this->addRecommendation(
