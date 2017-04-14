@@ -22,7 +22,7 @@
   "compression": "GZ",
   "git-version": "package_version",
   "main": "bin/pimcore.php",
-  "output": "pimcore.phar",
+  "output": "build/pimcore.phar",
   "stub": true,
   "chmod": "0755"
 }
