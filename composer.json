@@ -6,5 +6,9 @@
     "psr-4": {
       "Pimcore\\": "src/"
     }
+  },
+  "require": {
+    "symfony/console": "^3.2",
+    "symfony/process": "^3.2"
   }
 }
