@@ -1,0 +1,7 @@
+# composer
+composer.lock
+/vendor
+
+# code style fixer
+.php_cs
+.php_cs.cache
