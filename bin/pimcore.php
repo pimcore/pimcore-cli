@@ -39,7 +39,9 @@ require_once __DIR__ . '/../vendor/autoload.php';
 $application = new Application('Pimcore CLI Tools');
 $application->addCommands([
     new CompletionCommand(),
-    new Command\Pimcore5\CheckRequirementsCommand()
+    new Command\VersionCommand(),
+    new Command\Pimcore5\CheckRequirementsCommand(),
+    new Command\Pimcore5\MigrateFilesystemCommand(),
 ]);
 
 $application->run();
