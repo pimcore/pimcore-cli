@@ -41,6 +41,16 @@ class MigrateFilesystemCommand extends AbstractCommand
      */
     protected $path;
 
+    /**
+     * Files to move to migration-backup directory
+     *
+     * @var array
+     */
+    private $filesToBackup = [
+        'app', 'bin', 'src', 'web', 'var', 'pimcore',
+        'index.php', '.htaccess', 'composer.json', 'composer.lock'
+    ];
+
     protected function configure()
     {
         $this->setName('pimcore5:migrate-filesystem');
@@ -73,7 +83,7 @@ class MigrateFilesystemCommand extends AbstractCommand
             return 1;
         }
 
-        $this->path = $path = realpath($path);
+        $this->path = $path = rtrim($fs->makePathRelative(realpath($path), getcwd()), DIRECTORY_SEPARATOR);
 
         $title = sprintf('Migrating installation %s', $path);
         if ($this->isDryRun()) {
@@ -110,6 +120,8 @@ class MigrateFilesystemCommand extends AbstractCommand
             return $this->handleException($e, 4);
         }
 
+        $this->backupFiles();
+
         return 0;
     }
 
@@ -129,18 +141,7 @@ class MigrateFilesystemCommand extends AbstractCommand
 
         $fs->mkdir($this->path('migration-backup'));
 
-        $dirs = ['app', 'bin', 'src', 'web', 'var', 'pimcore'];
-        foreach ($dirs as $dir) {
-            $source = $this->path($dir);
-            $target = $this->path('migration-backup', $dir);
-
-            if ($fs->exists($source)) {
-                $fs->rename($source, $target);
-            }
-        }
-
-        $files = ['index.php', '.htaccess'. 'composer.json', 'composer.lock'];
-        foreach ($files as $file) {
+        foreach ($this->filesToBackup as $file) {
             $source = $this->path($file);
             $target = $this->path('migration-backup', $file);
 
@@ -150,9 +151,9 @@ class MigrateFilesystemCommand extends AbstractCommand
         }
 
         $websiteSource = $this->path('website');
-        $websiteTarget = $this->path('website');
-
         if ($fs->exists($websiteSource)) {
+            $websiteTarget = $this->path('legacy', 'website');
+
             $fs->mkdir($this->path('legacy'));
             $fs->rename($websiteSource, $websiteTarget);
         }
