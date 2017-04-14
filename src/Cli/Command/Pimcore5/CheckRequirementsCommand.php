@@ -17,21 +17,16 @@ declare(strict_types=1);
 
 namespace Pimcore\Cli\Command\Pimcore5;
 
+use Pimcore\Cli\Console\Style\PimcoreStyle;
+use Pimcore\Cli\Console\Style\RequirementsFormatter;
 use Pimcore\Cli\Pimcore5\Pimcore5Requirements;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Style\OutputStyle;
-use Symfony\Component\Console\Style\SymfonyStyle;
-use Symfony\Requirements\Requirement;
 
 class CheckRequirementsCommand extends Command
 {
-    /**
-     * @var array
-     */
-    private $messages;
-
     protected function configure()
     {
         $this->setName('pimcore5:check-requirements');
@@ -41,33 +36,18 @@ class CheckRequirementsCommand extends Command
     {
         $requirements = new Pimcore5Requirements();
 
-        $io = new SymfonyStyle($input, $output);
+        $io = new PimcoreStyle($input, $output);
         $io->title('Pimcore 5 Requirements Checker');
-
-        $this->messages = [
-            'error'   => [],
-            'warning' => [],
-        ];
 
         $this->outputIniPath($requirements, $io);
 
         $io->text('> Checking Pimcore 5 requirements:');
 
-        $this->checkCollection($requirements->getRequirements(), $io, 'error', 'E', 'error');
-        $this->checkCollection($requirements->getRecommendations(), $io, 'warning', 'W', 'comment');
+        $formatter = new RequirementsFormatter($io);
+        $result    = $formatter->checkRequirements($requirements);
 
-        if (empty($this->messages['error'])) {
-            $io->success('Your system is ready to run Pimcore 5 projects!');
-        } else {
-            $io->error('Your system is not ready to run Pimcore 5 projects');
-
-            $io->section('Fix the following mandatory requirements');
-            $io->listing($this->messages['error']);
-        }
-
-        if (!empty($this->messages['warning'])) {
-            $io->section('Optional recommendations to improve your setup');
-            $io->listing($this->messages['warning']);
+        if (!$result) {
+            return 1;
         }
     }
 
@@ -82,42 +62,5 @@ class CheckRequirementsCommand extends Command
         } else {
             $io->writeln(sprintf('  <comment>%s</comment>', 'WARNING: No configuration file (php.ini) used by PHP!'));
         }
-    }
-
-    /**
-     * @param Requirement[] $requirements
-     * @param OutputStyle $io
-     * @param string $messageKey
-     * @param string $errorChar
-     * @param string $style
-     */
-    private function checkCollection(array $requirements, OutputStyle $io, string $messageKey, string $errorChar, string $style)
-    {
-        foreach ($requirements as $requirement) {
-            if ($requirement->isFulfilled()) {
-                $io->write('<info>.</info>');
-            } else {
-                $io->write(sprintf('<%1$s>%2$s</%1$s>', $style, $errorChar));
-                $this->messages[$messageKey][] = $this->getErrorMessage($requirement);
-            }
-        }
-    }
-
-    /**
-     * @param Requirement $requirement
-     * @param int $lineSize
-     *
-     * @return string
-     */
-    private function getErrorMessage(Requirement $requirement, int $lineSize = 70): string
-    {
-        if ($requirement->isFulfilled()) {
-            return '';
-        }
-
-        $errorMessage = wordwrap($requirement->getTestMessage(), $lineSize - 3, PHP_EOL . '   ') . PHP_EOL;
-        $errorMessage .= '   > ' . wordwrap($requirement->getHelpText(), $lineSize - 5, PHP_EOL . '   > ') . PHP_EOL;
-
-        return $errorMessage;
     }
 }

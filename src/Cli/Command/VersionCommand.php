@@ -14,14 +14,13 @@
 
 namespace Pimcore\Cli\Command;
 
+use Pimcore\Cli\Console\Style\PimcoreStyle;
 use Pimcore\Cli\Console\Style\VersionFormatter;
 use Pimcore\Cli\Util\VersionReader;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\OutputStyle;
-use Symfony\Component\Console\Style\SymfonyStyle;
 use Symfony\Component\Filesystem\Filesystem;
 
 class VersionCommand extends Command
@@ -35,7 +34,7 @@ class VersionCommand extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $io = new SymfonyStyle($input, $output);
+        $io = new PimcoreStyle($input, $output);
         $fs = new Filesystem();
 
         $path = $input->getArgument('path');
