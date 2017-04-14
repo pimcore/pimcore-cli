@@ -150,12 +150,19 @@ class MigrateFilesystemCommand extends AbstractCommand
             }
         }
 
-        $websiteSource = $this->path('website');
-        if ($fs->exists($websiteSource)) {
-            $websiteTarget = $this->path('legacy', 'website');
+        $legacyPath = $this->path('legacy');
+        foreach (['website', 'plugins'] as $dir) {
+            $source = $this->path($dir);
 
-            $fs->mkdir($this->path('legacy'));
-            $fs->rename($websiteSource, $websiteTarget);
+            if ($fs->exists($source)) {
+                if (!$fs->exists($legacyPath)) {
+                    $fs->mkdir($legacyPath);
+                }
+
+                $target = $this->path('legacy', $dir);
+
+                $fs->rename($source, $target);
+            }
         }
     }
 
