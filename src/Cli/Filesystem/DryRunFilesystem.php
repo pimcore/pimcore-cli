@@ -35,13 +35,20 @@ class DryRunFilesystem extends Filesystem
     private $dryRun = false;
 
     /**
+     * @var bool
+     */
+    private $printProperties = false;
+
+    /**
      * @param PimcoreStyle $io
      * @param bool $dryRun
+     * @param bool $printProperties
      */
-    public function __construct(PimcoreStyle $io, bool $dryRun = false)
+    public function __construct(PimcoreStyle $io, bool $dryRun = false, bool $printProperties = false)
     {
-        $this->io     = $io;
-        $this->dryRun = $dryRun;
+        $this->io              = $io;
+        $this->dryRun          = $dryRun;
+        $this->printProperties = $printProperties;
     }
 
     /**
@@ -61,8 +68,10 @@ class DryRunFilesystem extends Filesystem
     public function copy($originFile, $targetFile, $overwriteNewerFiles = false)
     {
         $this->io->writeln($this->dryRunMessage(sprintf(
-            'cp %s %s (overwriteNewerFiles: %s)',
-            $originFile, $targetFile, $overwriteNewerFiles ? 'true' : 'false'
+            'cp %s %s' . $this->formatPropertyString([
+                'overwriteNewerFiles' => $overwriteNewerFiles,
+            ]),
+            $originFile, $targetFile
         )));
 
         if (!$this->dryRun) {
@@ -373,11 +382,15 @@ class DryRunFilesystem extends Filesystem
 
     private function formatPropertyString(array $properties): string
     {
+        if (!$this->printProperties) {
+            return '';
+        }
+
         $result = [];
         foreach ($properties as $key => $value) {
             if (null !== $value) {
                 if (is_bool($value)) {
-                    $value = $value ? 'true' : false;
+                    $value = $value ? 'true' : 'false';
                 }
 
                 $result[] = sprintf('%s: %s', $key, $value);
