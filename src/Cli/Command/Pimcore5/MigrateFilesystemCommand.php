@@ -17,20 +17,25 @@ declare(strict_types=1);
 
 namespace Pimcore\Cli\Command\Pimcore5;
 
+use Distill\Distill;
 use Pimcore\Cli\Command\AbstractCommand;
 use Pimcore\Cli\Console\Style\RequirementsFormatter;
 use Pimcore\Cli\Console\Style\VersionFormatter;
 use Pimcore\Cli\Filesystem\DryRunFilesystem;
 use Pimcore\Cli\Pimcore5\Pimcore5Requirements;
+use Pimcore\Cli\Traits\DryRunTrait;
 use Pimcore\Cli\Util\VersionReader;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Filesystem\Filesystem;
+use Symfony\Component\Finder\Finder;
 
 class MigrateFilesystemCommand extends AbstractCommand
 {
+    use DryRunTrait;
+
     /**
      * @var Filesystem
      */
@@ -42,6 +47,11 @@ class MigrateFilesystemCommand extends AbstractCommand
     protected $path;
 
     /**
+     * @var string
+     */
+    protected $tmpDir;
+
+    /**
      * Files to move to migration-backup directory
      *
      * @var array
@@ -49,6 +59,16 @@ class MigrateFilesystemCommand extends AbstractCommand
     private $filesToBackup = [
         'app', 'bin', 'src', 'web', 'var', 'pimcore',
         'index.php', '.htaccess', 'composer.json', 'composer.lock'
+    ];
+
+    /**
+     * Files to use from archive
+     *
+     * @var array
+     */
+    private $filesToUse = [
+        'app', 'bin', 'pimcore', 'web',
+        'composer.json',
     ];
 
     protected function configure()
@@ -120,7 +140,15 @@ class MigrateFilesystemCommand extends AbstractCommand
             return $this->handleException($e, 4);
         }
 
-        $this->backupFiles();
+        $this->tmpDir = $this->path('.migration', uniqid('tmp.', true));
+
+        $io->comment('Temporary directory: ' . $this->tmpDir);
+
+        $this
+            ->extractZip()
+            ->backupFiles()
+            ->updateWorkingDirectory()
+            ->moveFilesIntoPlace();
 
         return 0;
     }
@@ -130,12 +158,46 @@ class MigrateFilesystemCommand extends AbstractCommand
      *
      * @return string
      */
-    private function path(...$parts)
+    private function path(...$parts): string
     {
-        return $this->path . DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, $parts);
+        array_unshift($parts, $this->path);
+
+        return call_user_func_array([$this, 'createPath'], $parts);
     }
 
-    private function backupFiles()
+    /**
+     * @param array ...$parts
+     *
+     * @return string
+     */
+    private function createPath(...$parts): string
+    {
+        $result = implode(DIRECTORY_SEPARATOR, $parts);
+
+        return $result;
+    }
+
+    private function extractZip(): self
+    {
+        $zipFile = $this->path('../pimcore-unstable.zip');
+
+        if (!$this->fs->exists($this->tmpDir)) {
+            $this->fs->mkdir($this->tmpDir);
+        }
+
+        $this->io->writeln($this->prefixDryRun(
+            sprintf('Extracting %s to %s', $zipFile, $this->tmpDir)
+        ));
+
+        if (!$this->isDryRun()) {
+            $distill = new Distill();
+            $distill->extractWithoutRootDirectory($zipFile, $this->tmpDir);
+        }
+
+        return $this;
+    }
+
+    private function backupFiles(): self
     {
         $fs = $this->fs;
 
@@ -164,12 +226,100 @@ class MigrateFilesystemCommand extends AbstractCommand
                 $fs->rename($source, $target);
             }
         }
+
+        return $this;
+    }
+
+    private function updateWorkingDirectory(): self
+    {
+        $fs = $this->fs;
+
+        foreach ($this->filesToUse as $file) {
+            $source = $this->createPath($this->tmpDir, $file);
+            $target = $this->path($file);
+
+            if ($fs->exists($source)) {
+                $fs->rename($source, $target);
+            } else {
+                // throw new \RuntimeException(sprintf('File/directory %s was not found in extracted archive', $file));
+            }
+        }
+
+        $dirs = array_map(function ($dir) {
+            return $this->path($dir);
+        }, [
+            'src',
+            'var',
+            'var/cache/pimcore',
+            'var/sessions',
+            'var/system',
+            'var/tmp',
+            'web/var/tmp'
+        ]);
+
+        $fs->mkdir($dirs);
+
+        return $this;
+    }
+
+    private function moveFilesIntoPlace(): self
+    {
+        $fs = $this->fs;
+
+        $pairs = [
+            'legacy/website/var/config'     => 'var/config',
+            'legacy/website/config'         => 'app/config/pimcore',
+            'legacy/website/var/classes'    => 'var/classes',
+            'legacy/website/var/versions'   => 'var/versions',
+            'legacy/website/var/log'        => 'var/logs/pimcore',
+            'legacy/website/var/recyclebin' => 'var/recyclebin',
+            'legacy/website/var/email'      => 'var/email',
+            'legacy/website/var/assets'     => 'web/var/assets',
+        ];
+
+
+        $path = function ($p) {
+            $parts = explode('/', $p);
+
+            return call_user_func_array([$this, 'path'], $parts);
+        };
+
+        foreach ($pairs as $source => $target) {
+            $source = $path($source);
+            $target = $path($target);
+
+            if (!$fs->exists($source)) {
+                continue;
+            }
+
+            $finder = new Finder();
+            $finder
+                ->in($source)
+                ->depth('== 0');
+
+            if ($finder->count() === 0) {
+                continue;
+            }
+
+            if (!$fs->exists($target)) {
+                $fs->mkdir($target);
+            }
+
+            foreach ($finder as $file) {
+                $sourceFile = $file->getRealPath();
+                $targetFile = $this->createPath($target, $file->getFilename());
+
+                $fs->rename($sourceFile, $targetFile);
+            }
+        }
+
+        return $this;
     }
 
     private function checkFilesystemPrerequisites()
     {
         if (!$this->fs->exists($this->path('website'))) {
-            throw new \RuntimeException('Website directory found in ' . $this->path('website'));
+            throw new \RuntimeException('Website directory not found in ' . $this->path('website'));
         }
 
         if ($this->fs->exists($this->path('legacy'))) {
@@ -218,7 +368,7 @@ class MigrateFilesystemCommand extends AbstractCommand
         }
     }
 
-    private function isDryRun(): bool
+    protected function isDryRun(): bool
     {
         return (bool)$this->io->getInput()->getOption('dry-run');
     }

@@ -18,12 +18,15 @@ declare(strict_types=1);
 namespace Pimcore\Cli\Filesystem;
 
 use Pimcore\Cli\Console\Style\PimcoreStyle;
+use Pimcore\Cli\Traits\DryRunTrait;
 use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 use Symfony\Component\Filesystem\Exception\IOException;
 use Symfony\Component\Filesystem\Filesystem;
 
 class DryRunFilesystem extends Filesystem
 {
+    use DryRunTrait;
+
     /**
      * @var PimcoreStyle
      */
@@ -49,6 +52,11 @@ class DryRunFilesystem extends Filesystem
         $this->io              = $io;
         $this->dryRun          = $dryRun;
         $this->printProperties = $printProperties;
+    }
+
+    protected function isDryRun(): bool
+    {
+        return $this->dryRun;
     }
 
     /**
@@ -402,39 +410,5 @@ class DryRunFilesystem extends Filesystem
         }
 
         return '';
-    }
-
-    /**
-     * Prefix message with dry run if in dry-run mode
-     *
-     * @param $message
-     * @param string $prefix
-     *
-     * @return string
-     */
-    private function dryRunMessage(string $message, string $prefix = 'DRY-RUN'): string
-    {
-        if ($this->dryRun) {
-            $message = $this->prefixDryRun($message, $prefix);
-        }
-
-        return $message;
-    }
-
-    /**
-     * Prefix message with DRY-RUN
-     *
-     * @param $message
-     * @param string $prefix
-     *
-     * @return string
-     */
-    private function prefixDryRun(string $message, string $prefix = 'DRY-RUN'): string
-    {
-        return sprintf(
-            '<bg=cyan;fg=white>%s</> %s',
-            $prefix,
-            $message
-        );
     }
 }

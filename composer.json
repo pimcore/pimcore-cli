@@ -13,6 +13,8 @@
     "symfony/intl": "^3.2",
     "symfony/process": "^3.2",
     "stecman/symfony-console-completion": "^0.7.0",
-    "symfony/filesystem": "^3.2"
+    "symfony/filesystem": "^3.2",
+    "raulfraile/distill": "^0.9.10",
+    "symfony/finder": "^3.2"
   }
 }
