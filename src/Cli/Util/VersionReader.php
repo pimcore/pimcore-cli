@@ -23,69 +23,63 @@ use Symfony\Component\Process\PhpProcess;
 class VersionReader
 {
     /**
-     * @var array
+     * @var string
      */
-    private $cache = [];
+    private $path;
 
     /**
-     * @param string $path
-     *
+     * @var array
+     */
+    private $data;
+
+    /**
+     * @param string $path Path to pimcore installation
+     */
+    public function __construct(string $path)
+    {
+        $this->path = $path;
+    }
+
+    /**
      * @return string
      */
-    public function getVersion(string $path): string
+    public function getPath(): string
     {
-        $versionData = $this->getVersionData($path);
+        return $this->path;
+    }
+
+    /**
+     * @return string
+     */
+    public function getVersion(): string
+    {
+        $versionData = $this->getVersionData();
 
         return (string)$versionData['version'];
     }
 
     /**
-     * @param string $path
-     *
      * @return int
      */
-    public function getRevision(string $path): int
+    public function getRevision(): int
     {
-        $versionData = $this->getVersionData($path);
+        $versionData = $this->getVersionData();
 
         return (int)$versionData['revision'];
     }
 
     /**
-     * @param string|null $path
-     */
-    public function resetCache(string $path = null)
-    {
-        if (null !== $path) {
-            if (isset($this->cache[$path])) {
-                unset($this->cache[$path]);
-            }
-        } else {
-            $this->cache = [];
-        }
-    }
-
-    /**
-     * @param string $path Path to pimcore installation
-     *
      * @return array
      */
-    public function getVersionData(string $path): array
+    public function getVersionData(): array
     {
-        if (isset($this->cache[$path])) {
-            return $this->cache[$path];
+        if (null !== $this->data) {
+            return $this->data;
         }
 
-        $fs = new Filesystem();
-        if (!$fs->exists($path)) {
-            throw new \InvalidArgumentException(sprintf('Invalid path: %s', $path));
-        }
+        $this->checkPrerequisites();
 
-        if (!$fs->exists($path . '/vendor/autoload.php')) {
-            throw new \InvalidArgumentException('vendor/autoload.php not found. Is the installation set up properly?');
-        }
-
-        $process = $this->getProcess($path);
+        $process = $this->getProcess();
         $process->run();
 
         if (!$process->isSuccessful()) {
@@ -93,31 +87,51 @@ class VersionReader
         }
 
         $version = $process->getOutput();
-        $info    = json_decode($version, true);
+        $data    = json_decode($version, true);
 
         if (JSON_ERROR_NONE !== json_last_error()) {
-            throw new \RuntimeException(sprintf('Failed to parse JSON version info: %s', json_last_error_msg()));
+            throw new \RuntimeException(sprintf('Failed to parse JSON version data: %s', json_last_error_msg()));
         }
 
-        $this->cache[$path] = $info;
+        $this->data = $data;
 
-        return $info;
+        return $data;
     }
 
-    private function getProcess(string $path): PhpProcess
+    /**
+     * Reset cached data
+     */
+    public function reset()
+    {
+        $this->data = null;
+    }
+
+    private function checkPrerequisites()
+    {
+        $fs = new Filesystem();
+        if (!$fs->exists($this->path)) {
+            throw new \InvalidArgumentException(sprintf('Invalid path: %s', $this->path));
+        }
+
+        if (!$fs->exists($this->path . '/vendor/autoload.php')) {
+            throw new \InvalidArgumentException('vendor/autoload.php not found. Is the installation set up properly?');
+        }
+    }
+
+    private function getProcess(): PhpProcess
     {
         $code = <<<'EOF'
 <?php
 require_once __DIR__ . '/vendor/autoload.php';
 
-$info = [
+$data = [
     'version'  => \Pimcore\Version::getVersion(),
     'revision' => \Pimcore\Version::getRevision() 
 ];
 
-echo json_encode($info);
+echo json_encode($data);
 EOF;
 
-        return new PhpProcess($code, $path);
+        return new PhpProcess($code, $this->path);
     }
 }
