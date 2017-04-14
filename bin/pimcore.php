@@ -16,6 +16,7 @@
 // CLI has no memory/time limits
 use Pimcore\Cli\Command;
 use Pimcore\Cli\Console\Application;
+use Stecman\Component\Symfony\Console\BashCompletion\CompletionCommand;
 
 // only run in PHP >= 7
 $requiredVersion = '7.0';
@@ -37,6 +38,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 
 $application = new Application('Pimcore CLI Tools');
 $application->addCommands([
+    new CompletionCommand(),
     new Command\Pimcore5\CheckRequirementsCommand()
 ]);
 
