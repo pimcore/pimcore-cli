@@ -77,6 +77,7 @@ class MigrateFilesystemCommand extends AbstractCommand
 
         $this
             ->addArgument('path', InputArgument::REQUIRED, 'Path to Pimcore 4 installation')
+            ->addArgument('zipFile', InputArgument::REQUIRED, 'Path to Pimcore 5 zip file')
             ->addOption(
                 'no-check-version', null, InputOption::VALUE_NONE,
                 'Do not check version prerequisites'
@@ -104,6 +105,13 @@ class MigrateFilesystemCommand extends AbstractCommand
         }
 
         $this->path = $path = rtrim($fs->makePathRelative(realpath($path), getcwd()), DIRECTORY_SEPARATOR);
+
+        $zipFile = $input->getArgument('zipFile');
+        if (!$fs->exists($zipFile)) {
+            $io->error(sprintf('Given zip file %s does not exist', $zipFile));
+
+            return 1;
+        }
 
         $title = sprintf('Migrating installation %s', $path);
         if ($this->isDryRun()) {
@@ -144,11 +152,17 @@ class MigrateFilesystemCommand extends AbstractCommand
 
         $io->comment('Temporary directory: ' . $this->tmpDir);
 
-        $this
-            ->extractZip()
-            ->backupFiles()
-            ->updateWorkingDirectory()
-            ->moveFilesIntoPlace();
+        try {
+            $this
+                ->extractZip($zipFile)
+                ->backupFiles()
+                ->updateWorkingDirectory()
+                ->moveFilesIntoPlace();
+        } catch (\Exception $e) {
+            return $this->handleException($e, 5);
+        }
+
+        $io->success('All done! Please check if all your files were moved properly and remove the .migration directory');
 
         return 0;
     }
@@ -177,10 +191,8 @@ class MigrateFilesystemCommand extends AbstractCommand
         return $result;
     }
 
-    private function extractZip(): self
+    private function extractZip(string $zipFile): self
     {
-        $zipFile = $this->path('../pimcore-unstable.zip');
-
         if (!$this->fs->exists($this->tmpDir)) {
             $this->fs->mkdir($this->tmpDir);
         }
