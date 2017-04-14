@@ -9,6 +9,8 @@
   },
   "require": {
     "symfony/console": "^3.2",
+    "symfony/requirements-checker": "dev-master",
+    "symfony/intl": "^3.2",
     "symfony/process": "^3.2"
   }
 }

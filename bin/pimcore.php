@@ -14,6 +14,7 @@
  */
 
 // CLI has no memory/time limits
+use Pimcore\Cli\Command;
 use Pimcore\Cli\Console\Application;
 
 // only run in PHP >= 7
@@ -35,4 +36,8 @@ if (version_compare(PHP_VERSION, $requiredVersion, '<')) {
 require_once __DIR__ . '/../vendor/autoload.php';
 
 $application = new Application('Pimcore CLI Tools');
+$application->addCommands([
+    new Command\Pimcore5\CheckRequirementsCommand()
+]);
+
 $application->run();
