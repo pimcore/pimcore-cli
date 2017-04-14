@@ -23,6 +23,7 @@ use Pimcore\Cli\Console\Style\RequirementsFormatter;
 use Pimcore\Cli\Console\Style\VersionFormatter;
 use Pimcore\Cli\Filesystem\DryRunFilesystem;
 use Pimcore\Cli\Pimcore5\Pimcore5Requirements;
+use Pimcore\Cli\Traits\DryRunCommandTrait;
 use Pimcore\Cli\Traits\DryRunTrait;
 use Pimcore\Cli\Util\VersionReader;
 use Symfony\Component\Console\Input\InputArgument;
@@ -34,7 +35,7 @@ use Symfony\Component\Finder\Finder;
 
 class MigrateFilesystemCommand extends AbstractCommand
 {
-    use DryRunTrait;
+    use DryRunCommandTrait;
 
     /**
      * @var Filesystem
@@ -73,7 +74,7 @@ class MigrateFilesystemCommand extends AbstractCommand
 
     protected function configure()
     {
-        $this->setName('pimcore5:migrate-filesystem');
+        $this->setName('pimcore5:migrate:filesystem');
 
         $this
             ->addArgument('path', InputArgument::REQUIRED, 'Path to Pimcore 4 installation')
@@ -85,11 +86,9 @@ class MigrateFilesystemCommand extends AbstractCommand
             ->addOption(
                 'no-check-requirements', null, InputOption::VALUE_NONE,
                 'Do not check Pimcore 5 requirements (you can check them manually via pimcore5:check-requirements command)'
-            )
-            ->addOption(
-                'dry-run', 'N', InputOption::VALUE_NONE,
-                'Simulate only (do not change anything)'
             );
+
+        $this->configureDryRunOption();
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
@@ -197,7 +196,7 @@ class MigrateFilesystemCommand extends AbstractCommand
             $this->fs->mkdir($this->tmpDir);
         }
 
-        $this->io->writeln($this->prefixDryRun(
+        $this->io->writeln($this->dryRunMessage(
             sprintf('Extracting %s to %s', $zipFile, $this->tmpDir)
         ));
 
@@ -252,8 +251,6 @@ class MigrateFilesystemCommand extends AbstractCommand
 
             if ($fs->exists($source)) {
                 $fs->rename($source, $target);
-            } else {
-                // throw new \RuntimeException(sprintf('File/directory %s was not found in extracted archive', $file));
             }
         }
 
@@ -321,7 +318,7 @@ class MigrateFilesystemCommand extends AbstractCommand
                 $sourceFile = $file->getRealPath();
                 $targetFile = $this->createPath($target, $file->getFilename());
 
-                $fs->rename($sourceFile, $targetFile);
+                $fs->rename($sourceFile, $targetFile, true);
             }
         }
 
@@ -378,11 +375,6 @@ class MigrateFilesystemCommand extends AbstractCommand
         if (!$formatter->checkRequirements(new Pimcore5Requirements())) {
             throw new \RuntimeException('Pimcore 5 requirements check failed');
         }
-    }
-
-    protected function isDryRun(): bool
-    {
-        return (bool)$this->io->getInput()->getOption('dry-run');
     }
 
     /**

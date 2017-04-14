@@ -42,6 +42,7 @@ $application->addCommands([
     new Command\VersionCommand(),
     new Command\Pimcore5\CheckRequirementsCommand(),
     new Command\Pimcore5\MigrateFilesystemCommand(),
+    new Command\Pimcore5\MigrateViewsCommand(),
 ]);
 
 $application->run();
