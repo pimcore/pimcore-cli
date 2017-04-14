@@ -203,7 +203,7 @@ class MigrateFilesystemCommand extends AbstractCommand
 
         if (!$this->isDryRun()) {
             $distill = new Distill();
-            $distill->extractWithoutRootDirectory($zipFile, $this->tmpDir);
+            $distill->extract($zipFile, $this->tmpDir);
         }
 
         return $this;
