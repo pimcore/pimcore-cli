@@ -17,15 +17,13 @@ declare(strict_types=1);
 
 namespace Pimcore\Cli\Command\Pimcore5;
 
-use Pimcore\Cli\Console\Style\PimcoreStyle;
+use Pimcore\Cli\Command\AbstractCommand;
 use Pimcore\Cli\Console\Style\RequirementsFormatter;
 use Pimcore\Cli\Pimcore5\Pimcore5Requirements;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Style\OutputStyle;
 
-class CheckRequirementsCommand extends Command
+class CheckRequirementsCommand extends AbstractCommand
 {
     protected function configure()
     {
@@ -36,14 +34,13 @@ class CheckRequirementsCommand extends Command
     {
         $requirements = new Pimcore5Requirements();
 
-        $io = new PimcoreStyle($input, $output);
-        $io->title('Pimcore 5 Requirements Checker');
+        $this->io->title('Pimcore 5 Requirements Checker');
 
-        $this->outputIniPath($requirements, $io);
+        $this->outputIniPath($requirements);
 
-        $io->text('> Checking Pimcore 5 requirements:');
+        $this->io->text('> Checking Pimcore 5 requirements:');
 
-        $formatter = new RequirementsFormatter($io);
+        $formatter = new RequirementsFormatter($this->io);
         $result    = $formatter->checkRequirements($requirements);
 
         if (!$result) {
@@ -51,16 +48,16 @@ class CheckRequirementsCommand extends Command
         }
     }
 
-    private function outputIniPath(Pimcore5Requirements $requirements, OutputStyle $io)
+    private function outputIniPath(Pimcore5Requirements $requirements)
     {
         $iniPath = $requirements->getPhpIniPath();
 
-        $io->text('> PHP is using the following php.ini file:');
+        $this->io->text('> PHP is using the following php.ini file:');
 
         if ($iniPath) {
-            $io->writeln(sprintf('  <info>%s</info>', $iniPath));
+            $this->io->writeln(sprintf('  <info>%s</info>', $iniPath));
         } else {
-            $io->writeln(sprintf('  <comment>%s</comment>', 'WARNING: No configuration file (php.ini) used by PHP!'));
+            $this->io->writeln(sprintf('  <comment>%s</comment>', 'WARNING: No configuration file (php.ini) used by PHP!'));
         }
     }
 }

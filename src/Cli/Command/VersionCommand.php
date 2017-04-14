@@ -14,41 +14,41 @@
 
 namespace Pimcore\Cli\Command;
 
-use Pimcore\Cli\Console\Style\PimcoreStyle;
 use Pimcore\Cli\Console\Style\VersionFormatter;
 use Pimcore\Cli\Util\VersionReader;
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Filesystem\Filesystem;
 
-class VersionCommand extends Command
+class VersionCommand extends AbstractCommand
 {
     protected function configure()
     {
         $this
             ->setName('info:version')
-            ->addArgument('path', InputArgument::REQUIRED, 'Path to Pimcore installation');
+            ->addArgument(
+                'path', InputArgument::REQUIRED,
+                'Path to Pimcore installation'
+            );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $io = new PimcoreStyle($input, $output);
         $fs = new Filesystem();
 
         $path = $input->getArgument('path');
         if (!$fs->exists($path)) {
-            $io->error(sprintf('Given path %s does not exist', $path));
+            $this->io->error(sprintf('Given path %s does not exist', $path));
 
             return 1;
         }
 
         $versionReader = new VersionReader($path);
 
-        $io->title(sprintf('Version info for installation <comment>%s</comment>', realpath($versionReader->getPath())));
+        $this->io->title(sprintf('Version info for installation <comment>%s</comment>', realpath($versionReader->getPath())));
 
-        $formatter = new VersionFormatter($io);
+        $formatter = new VersionFormatter($this->io);
         $formatter->formatVersions($versionReader);
     }
 }
