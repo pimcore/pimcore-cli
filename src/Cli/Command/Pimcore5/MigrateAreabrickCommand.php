@@ -51,6 +51,7 @@ class MigrateAreabrickCommand extends AbstractCommand
     private $supportedXmlProperties = [
         'id',
         'name',
+        'icon',
         'description',
         'version'
     ];
