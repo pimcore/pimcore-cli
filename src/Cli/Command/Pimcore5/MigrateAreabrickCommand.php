@@ -185,6 +185,8 @@ class MigrateAreabrickCommand extends AbstractCommand
 
         $class = new PhpClass($className);
         $class
+            ->addUseStatement('\\Pimcore\\Extension\\Document\\Areabrick\\AbstractTemplateAreabrick')
+            ->setParentClassName('AbstractTemplateAreabrick')
             ->setDocblock('')
             ->setQualifiedName($bundle . '\\Document\\Areabrick\\' . $className);
 
