@@ -36,16 +36,22 @@ class MigrateViewsCommand extends AbstractCommand
     {
         $this
             ->setName('pimcore5:migrate:views')
+            ->setDescription('Migrate view files (change extension and file casing)')
             ->addArgument('sourceDir', InputArgument::REQUIRED)
             ->addArgument('targetDir', InputArgument::REQUIRED)
-            ->addOption(
-                'rename-first-directory', 'r',
-                InputOption::VALUE_NONE
-            )
             ->addOption(
                 'move', 'm',
                 InputOption::VALUE_NONE,
                 'Move files instead of copying them'
+            )
+            ->addOption(
+                'no-rename-filename', 'R',
+                InputOption::VALUE_NONE,
+                'Do not convert filenames from dashed-case to camelCase'
+            )
+            ->addOption(
+                'no-rename-first-directory', 'D',
+                InputOption::VALUE_NONE
             )
             ->addOption(
                 'no-type-header', 'T',
@@ -67,11 +73,8 @@ class MigrateViewsCommand extends AbstractCommand
             throw new \InvalidArgumentException('Invalid source directory');
         }
 
-        if (file_exists($targetDir)) {
-            throw new \InvalidArgumentException('Target directory already exists');
-        }
-
-        $targetDir = rtrim($targetDir, '/');
+        $sourceDir = rtrim($sourceDir, DIRECTORY_SEPARATOR);
+        $targetDir = rtrim($targetDir, DIRECTORY_SEPARATOR);
 
         $finder = new Finder();
         $finder
@@ -85,21 +88,30 @@ class MigrateViewsCommand extends AbstractCommand
         $addTypehintHeader = !$input->getOption('no-type-header');
 
         foreach ($finder as $file) {
-            $relativePath = str_replace($sourceDir . '/', '', $file->getRealPath());
+            $relativePath = str_replace($sourceDir . DIRECTORY_SEPARATOR, '', $file->getRealPath());
 
-            $pathParts = explode('/', $relativePath);
+            $pathParts = explode(DIRECTORY_SEPARATOR, $relativePath);
 
-            if ($input->getOption('rename-first-directory') && count($pathParts) > 1) {
+            if (!$input->getOption('no-rename-first-directory') && count($pathParts) > 1) {
                 $pathParts[0] = TextUtils::dashesToCamelCase($pathParts[0], true);
             }
 
             $filename = array_pop($pathParts);
-            $filename = TextUtils::dashesToCamelCase($filename);
+
+            if (!$input->getOption('no-rename-filename')) {
+                $filename = TextUtils::dashesToCamelCase($filename);
+            }
+
             $filename = preg_replace('/\.php$/', '.html.php', $filename);
 
             $pathParts[] = $filename;
 
-            $targetPath = $targetDir . '/' . implode('/', $pathParts);
+            $targetPath = $targetDir . DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, $pathParts);
+
+            if ($fs->exists($targetPath)) {
+                $this->io->writeln(sprintf('<comment>WARNING:</comment> File %s already exists, skipping...', $targetPath));
+                continue;
+            }
 
             if ($input->getOption('move')) {
                 $fs->mkdir(dirname($targetPath));
