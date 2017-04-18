@@ -43,6 +43,7 @@ $application->addCommands([
     new Command\Pimcore5\CheckRequirementsCommand(),
     new Command\Pimcore5\MigrateFilesystemCommand(),
     new Command\Pimcore5\MigrateViewsCommand(),
+    new Command\Pimcore5\MigrateAreabrickCommand(),
 ]);
 
 $application->run();
