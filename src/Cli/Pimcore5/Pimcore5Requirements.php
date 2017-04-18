@@ -269,6 +269,7 @@ class Pimcore5Requirements extends RequirementCollection
             'Upgrade your <strong>intl</strong> extension with a newer ICU version (4+).'
         );
 
+        /*
         $this->addRecommendation(
             Intl::getIcuDataVersion() <= Intl::getIcuVersion(),
             sprintf('intl ICU version installed on your system is outdated (%s) and does not match the ICU data bundled with Symfony (%s)', Intl::getIcuVersion(), Intl::getIcuDataVersion()),
@@ -282,6 +283,7 @@ class Pimcore5Requirements extends RequirementCollection
                 'To avoid internationalization data inconsistencies upgrade the symfony/intl component.'
             );
         }
+        */
 
         $this->addPhpConfigRecommendation(
             'intl.error_level',
