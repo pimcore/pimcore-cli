@@ -44,6 +44,25 @@ class FileUtils
     /**
      * @param string $path
      *
+     * @return bool
+     */
+    public static function isDirectoryEmpty(string $path): bool
+    {
+        if (!file_exists($path) || !is_dir($path)) {
+            throw new \InvalidArgumentException('Given path is no directory');
+        }
+
+        $iterator = new \FilesystemIterator($path, \FilesystemIterator::SKIP_DOTS);
+        foreach ($iterator as $file) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param string $path
+     *
      * @return string
      */
     public static function getFileContents(string $path): string

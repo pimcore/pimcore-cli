@@ -156,31 +156,50 @@ class MigrateFilesystemCommand extends AbstractCommand
 
         try {
             $this
-                ->extractZip($zipFile)
                 ->backupFiles()
-                ->updateWorkingDirectory()
-                ->moveFilesIntoPlace();
+                ->extractZip($zipFile)
+                ->createNewDirectories()
+                ->moveFilesIntoPlace()
+                ->moveLegacyFiles();
         } catch (\Exception $e) {
             return $this->handleException($e, 5);
         }
 
         $io->success('All done! Please check if all your files were moved properly and remove the .migration directory');
+        $io->success('Please update the composer.json with your custom entries (see migration-backup directory for your previous version) and run composer update');
 
         return 0;
     }
 
     /**
-     * @param array ...$parts
+     * Backup existing files (see filesToBackup property) to migration-backup directory
      *
-     * @return string
+     * @return self
      */
-    private function path(...$parts): string
+    private function backupFiles(): self
     {
-        array_unshift($parts, $this->path);
+        $this->fs->mkdir($this->path('migration-backup'));
 
-        return FileUtils::buildPath($parts);
+        foreach ($this->filesToBackup as $file) {
+            $source = $this->path($file);
+            $target = $this->path('migration-backup', $file);
+
+            if ($this->fs->exists($source)) {
+                $this->fs->rename($source, $target);
+            }
+        }
+
+        return $this;
     }
 
+    /**
+     * Extracts zip file to temporary directory and copies the files we want to use to
+     * the project root
+     *
+     * @param string $zipFile
+     *
+     * @return MigrateFilesystemCommand
+     */
     private function extractZip(string $zipFile): self
     {
         if (!$this->fs->exists($this->tmpDir)) {
@@ -196,55 +215,25 @@ class MigrateFilesystemCommand extends AbstractCommand
             $distill->extract($zipFile, $this->tmpDir);
         }
 
-        return $this;
-    }
-
-    private function backupFiles(): self
-    {
-        $fs = $this->fs;
-
-        $fs->mkdir($this->path('migration-backup'));
-
-        foreach ($this->filesToBackup as $file) {
-            $source = $this->path($file);
-            $target = $this->path('migration-backup', $file);
-
-            if ($fs->exists($source)) {
-                $fs->rename($source, $target);
-            }
-        }
-
-        $legacyPath = $this->path('legacy');
-        foreach (['website', 'plugins'] as $dir) {
-            $source = $this->path($dir);
-
-            if ($fs->exists($source)) {
-                if (!$fs->exists($legacyPath)) {
-                    $fs->mkdir($legacyPath);
-                }
-
-                $target = $this->path('legacy', $dir);
-
-                $fs->rename($source, $target);
-            }
-        }
-
-        return $this;
-    }
-
-    private function updateWorkingDirectory(): self
-    {
-        $fs = $this->fs;
-
         foreach ($this->filesToUse as $file) {
             $source = FileUtils::buildPath($this->tmpDir, $file);
             $target = $this->path($file);
 
-            if ($fs->exists($source)) {
-                $fs->rename($source, $target);
+            if ($this->fs->exists($source)) {
+                $this->fs->rename($source, $target);
             }
         }
 
+        return $this;
+    }
+
+    /**
+     * Creates new directory structure
+     *
+     * @return self
+     */
+    private function createNewDirectories(): self
+    {
         $dirs = array_map(function ($dir) {
             return $this->path($dir);
         }, [
@@ -257,26 +246,32 @@ class MigrateFilesystemCommand extends AbstractCommand
             'web/var/tmp'
         ]);
 
-        $fs->mkdir($dirs);
+        $this->fs->mkdir($dirs);
 
         return $this;
     }
 
+    /**
+     * Moves files from website into new directories
+     *
+     * @return self
+     */
     private function moveFilesIntoPlace(): self
     {
         $fs = $this->fs;
 
         $pairs = [
-            'legacy/website/var/config'     => 'var/config',
-            'legacy/website/config'         => 'app/config/pimcore',
-            'legacy/website/var/classes'    => 'var/classes',
-            'legacy/website/var/versions'   => 'var/versions',
-            'legacy/website/var/log'        => 'var/logs/pimcore',
-            'legacy/website/var/recyclebin' => 'var/recyclebin',
-            'legacy/website/var/email'      => 'var/email',
-            'legacy/website/var/assets'     => 'web/var/assets',
+            'website/var/config'     => 'var/config',
+            'website/config'         => 'app/config/pimcore',
+            'website/var/classes'    => 'var/classes',
+            'website/var/versions'   => 'var/versions',
+            'website/var/log'        => 'var/logs/pimcore',
+            'website/var/recyclebin' => 'var/recyclebin',
+            'website/var/user-image' => 'var/user-image',
+            'website/var/system'     => 'var/system',
+            'website/var/email'      => 'var/email',
+            'website/var/assets'     => 'web/var/assets',
         ];
-
 
         $path = function ($p) {
             $parts = explode('/', $p);
@@ -311,6 +306,37 @@ class MigrateFilesystemCommand extends AbstractCommand
 
                 $fs->rename($sourceFile, $targetFile, true);
             }
+
+            if (FileUtils::isDirectoryEmpty($source)) {
+                $fs->remove($source);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Moves legacy files to legacy/ directory
+     *
+     * @return self
+     */
+    private function moveLegacyFiles(): self
+    {
+        $fs = $this->fs;
+
+        $legacyPath = $this->path('legacy');
+        foreach (['website', 'plugins'] as $dir) {
+            $source = $this->path($dir);
+
+            if ($fs->exists($source)) {
+                if (!$fs->exists($legacyPath)) {
+                    $fs->mkdir($legacyPath);
+                }
+
+                $target = $this->path('legacy', $dir);
+
+                $fs->rename($source, $target);
+            }
         }
 
         return $this;
@@ -332,7 +358,7 @@ class MigrateFilesystemCommand extends AbstractCommand
     }
 
     /**
-     * Test if version prerequisites match (Pimcore >= 4.5.0, < 5)
+     * Tests if version prerequisites match (Pimcore >= 4.5.0, < 5)
      *
      * @param VersionReader $versionReader
      */
@@ -352,7 +378,7 @@ class MigrateFilesystemCommand extends AbstractCommand
     }
 
     /**
-     * Test if Pimcore 5 requirements match
+     * Tests if Pimcore 5 requirements match
      *
      * @return bool
      */
@@ -390,5 +416,17 @@ class MigrateFilesystemCommand extends AbstractCommand
         }
 
         return $defaultExitCode;
+    }
+
+    /**
+     * Build path prefixed with project path
+     *
+     * @param array ...$parts
+     *
+     * @return string
+     */
+    private function path(...$parts): string
+    {
+        return FileUtils::buildPath($this->path, $parts);
     }
 }
