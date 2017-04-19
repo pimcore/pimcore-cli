@@ -23,6 +23,25 @@ use Symfony\Component\Finder\SplFileInfo;
 class FileUtils
 {
     /**
+     * Flattens parts of a path to a path string. Parts can either be strings or array
+     *
+     * @param array ...$parts
+     *
+     * @return string
+     */
+    public static function buildPath(...$parts): string
+    {
+        $iterator = new \RecursiveIteratorIterator(new \RecursiveArrayIterator($parts));
+
+        $array = [];
+        foreach ($iterator as $part) {
+            $array[] = $part;
+        }
+
+        return implode(DIRECTORY_SEPARATOR, $array);
+    }
+
+    /**
      * @param string $path
      *
      * @return string

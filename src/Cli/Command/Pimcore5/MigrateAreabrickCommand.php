@@ -18,13 +18,11 @@ declare(strict_types=1);
 namespace Pimcore\Cli\Command\Pimcore5;
 
 use Doctrine\Common\Util\Inflector;
-use gossi\codegen\generator\CodeGenerator;
-use gossi\codegen\model\PhpClass;
-use gossi\codegen\model\PhpMethod;
 use Pimcore\Cli\Command\AbstractCommand;
 use Pimcore\Cli\Filesystem\DryRunFilesystem;
 use Pimcore\Cli\Traits\DryRunCommandTrait;
 use Pimcore\Cli\Util\CodeGeneratorUtils;
+use Pimcore\Cli\Util\FileUtils;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -142,7 +140,7 @@ class MigrateAreabrickCommand extends AbstractCommand
             throw new \InvalidArgumentException('Invalid bundle name. Must end in "Bundle"');
         }
 
-        $bundleDir = $srcDir . DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, explode('\\', $bundle));
+        $bundleDir = FileUtils::buildPath($srcDir, explode('\\', $bundle));
 
         $xml  = $this->readXml($fileInfo->getRealPath());
         $info = [];
@@ -240,8 +238,7 @@ class MigrateAreabrickCommand extends AbstractCommand
      */
     private function writeClassFile(ClassGenerator $class, string $bundleDir)
     {
-        $classDir  = $bundleDir . DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, ['Document', 'Areabrick']);
-        $classFile = $classDir . DIRECTORY_SEPARATOR . $class->getName() . '.php';
+        $classFile = FileUtils::buildPath($bundleDir, 'Document', 'Areabrick', $class->getName() . '.php');
 
         $code = CodeGeneratorUtils::generateClassCode($class);
 
@@ -249,6 +246,13 @@ class MigrateAreabrickCommand extends AbstractCommand
         $this->fs->dumpFile($classFile, $code);
     }
 
+    /**
+     * Finds area files which can be migrated automatically
+     *
+     * @param $path
+     *
+     * @return array
+     */
     private function findAreaFiles($path): array
     {
         $files = new Finder();
@@ -258,7 +262,7 @@ class MigrateAreabrickCommand extends AbstractCommand
             ->notName('area.xml');
 
         $supported        = ['view.php', 'edit.php'];
-        $publicExtensions = ['css', 'png', 'jpg', 'gif'];
+        $publicExtensions = ['css', 'js', 'png', 'jpg', 'gif'];
 
         $result = [
             'public' => [],
@@ -280,21 +284,32 @@ class MigrateAreabrickCommand extends AbstractCommand
         return $result;
     }
 
+    /**
+     * Copies area files to their new location
+     *
+     * @param string $brickId
+     * @param array $files
+     * @param string $bundleDir
+     * @param string $appDir
+     * @param string $templateLocation
+     */
     private function migrateAreaFiles(string $brickId, array $files, string $bundleDir, string $appDir, string $templateLocation)
     {
         /** @var \SplFileInfo[] $typeFiles */
         foreach ($files as $type => $typeFiles) {
             $typePath = null;
             if ($type === 'public') {
-                $typePath = $bundleDir . DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, ['Resources', 'public', 'areas', $brickId]);
+                $typePath = FileUtils::buildPath($bundleDir, 'Resources', 'public', 'areas', $brickId);
             } elseif ($type === 'views') {
-                $typePath = implode(DIRECTORY_SEPARATOR, ['Resources', 'views', 'Areas', $brickId]);
+                $typePath = ['Resources', 'views', 'Areas', $brickId];
 
                 if ($templateLocation === 'global') {
-                    $typePath = $appDir . DIRECTORY_SEPARATOR . $typePath;
+                    array_unshift($typePath, $appDir);
                 } elseif ($templateLocation === 'bundle') {
-                    $typePath = $bundleDir . DIRECTORY_SEPARATOR . $typePath;
+                    array_unshift($typePath, $bundleDir);
                 }
+
+                $typePath = FileUtils::buildPath($typePath);
             }
 
             if (null === $typePath) {
@@ -308,13 +323,12 @@ class MigrateAreabrickCommand extends AbstractCommand
                 }
 
                 $sourceFile = $typeFile->getRealPath();
-                $targetFile = $typePath . DIRECTORY_SEPARATOR . $filename;
+                $targetFile = FileUtils::buildPath($typePath, $filename);
 
                 $this->fs->copy($sourceFile, $targetFile);
             }
         }
     }
-
 
     private function readXml(string $xmlFile): array
     {

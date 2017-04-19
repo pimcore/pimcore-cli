@@ -25,6 +25,7 @@ use Pimcore\Cli\Filesystem\DryRunFilesystem;
 use Pimcore\Cli\Pimcore5\Pimcore5Requirements;
 use Pimcore\Cli\Traits\DryRunCommandTrait;
 use Pimcore\Cli\Traits\DryRunTrait;
+use Pimcore\Cli\Util\FileUtils;
 use Pimcore\Cli\Util\VersionReader;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
@@ -175,19 +176,7 @@ class MigrateFilesystemCommand extends AbstractCommand
     {
         array_unshift($parts, $this->path);
 
-        return call_user_func_array([$this, 'createPath'], $parts);
-    }
-
-    /**
-     * @param array ...$parts
-     *
-     * @return string
-     */
-    private function createPath(...$parts): string
-    {
-        $result = implode(DIRECTORY_SEPARATOR, $parts);
-
-        return $result;
+        return FileUtils::buildPath($parts);
     }
 
     private function extractZip(string $zipFile): self
@@ -246,7 +235,7 @@ class MigrateFilesystemCommand extends AbstractCommand
         $fs = $this->fs;
 
         foreach ($this->filesToUse as $file) {
-            $source = $this->createPath($this->tmpDir, $file);
+            $source = FileUtils::buildPath($this->tmpDir, $file);
             $target = $this->path($file);
 
             if ($fs->exists($source)) {
@@ -316,7 +305,7 @@ class MigrateFilesystemCommand extends AbstractCommand
 
             foreach ($finder as $file) {
                 $sourceFile = $file->getRealPath();
-                $targetFile = $this->createPath($target, $file->getFilename());
+                $targetFile = FileUtils::buildPath($target, $file->getFilename());
 
                 $fs->rename($sourceFile, $targetFile, true);
             }
