@@ -24,12 +24,17 @@ use gossi\codegen\model\PhpMethod;
 use Pimcore\Cli\Command\AbstractCommand;
 use Pimcore\Cli\Filesystem\DryRunFilesystem;
 use Pimcore\Cli\Traits\DryRunCommandTrait;
+use Pimcore\Cli\Util\CodeGeneratorUtils;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
+use Zend\Code\Generator\ClassGenerator;
+use Zend\Code\Generator\DocBlock\Tag\GenericTag;
+use Zend\Code\Generator\DocBlockGenerator;
+use Zend\Code\Generator\MethodGenerator;
 
 class MigrateAreabrickCommand extends AbstractCommand
 {
@@ -153,7 +158,7 @@ class MigrateAreabrickCommand extends AbstractCommand
         }
 
         $files = $this->findAreaFiles(dirname($fileInfo->getRealPath()));
-        $class = $this->buildClass($info, $bundle, $templateLocation);
+        $class = $this->buildClassGenerator($info, $bundle, $templateLocation);
 
         $brickId = $this->toBrickId($class->getName());
 
@@ -167,7 +172,16 @@ class MigrateAreabrickCommand extends AbstractCommand
         }
     }
 
-    private function buildClass(array $info, string $bundle, string $templateLocation): PhpClass
+    /**
+     * Builds class definition
+     *
+     * @param array $info
+     * @param string $bundle
+     * @param string $templateLocation
+     *
+     * @return ClassGenerator
+     */
+    private function buildClassGenerator(array $info, string $bundle, string $templateLocation): ClassGenerator
     {
         if (!isset($info['id'])) {
             throw new \RuntimeException('Missing ID property');
@@ -183,45 +197,53 @@ class MigrateAreabrickCommand extends AbstractCommand
             $this->hasWarnings = true;
         }
 
-        $class = new PhpClass($className);
+        $class = new ClassGenerator($className);
         $class
-            ->addUseStatement('\\Pimcore\\Extension\\Document\\Areabrick\\AbstractTemplateAreabrick')
-            ->setParentClassName('AbstractTemplateAreabrick')
-            ->setDocblock('')
-            ->setQualifiedName($bundle . '\\Document\\Areabrick\\' . $className);
+            ->addUse('Pimcore\\Extension\\Document\\Areabrick\\AbstractTemplateAreabrick')
+            ->setNamespaceName($bundle . '\\Document\\Areabrick')
+            ->setExtendedClass('Pimcore\\Extension\\Document\\Areabrick\\AbstractTemplateAreabrick');
 
         if ('global' === $templateLocation) {
-            $class->setMethod(
-                PhpMethod::create('getTemplateLocation')
-                    ->setBody(sprintf('return static::TEMPLATE_LOCATION_%s;', strtoupper($templateLocation)))
-                    ->setDocblock('@inheritdoc')
-            );
+            $templateLocationMethod = MethodGenerator::fromArray(['name' => 'getTemplateLocation']);
+            $templateLocationMethod
+                ->setBody(sprintf('return static::TEMPLATE_LOCATION_%s;', strtoupper($templateLocation)))
+                ->setDocBlock(DocBlockGenerator::fromArray([
+                    'tags' => [
+                        new GenericTag('inheritdoc')
+                    ]
+                ]));
+
+            $class->addMethodFromGenerator($templateLocationMethod);
         }
 
         foreach (['name', 'description', 'version', 'icon'] as $property) {
             if (isset($info[$property]) && !empty($info[$property])) {
-                $class->setMethod(
-                    PhpMethod::create('get' . ucfirst($property))
-                        ->setBody(sprintf("return '%s';", $info[$property]))
-                        ->setDocblock('@inheritdoc')
-                );
+                $propertyMethod = MethodGenerator::fromArray(['name' => 'get' . ucfirst($property)]);
+                $propertyMethod
+                    ->setBody(sprintf("return '%s';", $info[$property]))
+                    ->setDocBlock(DocBlockGenerator::fromArray([
+                        'tags' => [
+                            new GenericTag('inheritdoc')
+                        ]
+                    ]));
+
+                $class->addMethodFromGenerator($propertyMethod);
             }
         }
 
         return $class;
     }
 
-    private function writeClassFile(PhpClass $class, string $bundleDir)
+    /**
+     * @param ClassGenerator $class
+     * @param string $bundleDir
+     */
+    private function writeClassFile(ClassGenerator $class, string $bundleDir)
     {
         $classDir  = $bundleDir . DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, ['Document', 'Areabrick']);
         $classFile = $classDir . DIRECTORY_SEPARATOR . $class->getName() . '.php';
 
-        $generator = new CodeGenerator();
-
-        $code      = $generator->generate($class);
-        $code      = str_replace("\t", '    ', $code);
-        $code      = $code . PHP_EOL;
-        $code      = '<?php' . PHP_EOL . PHP_EOL . $code;
+        $code = CodeGeneratorUtils::generateClassCode($class);
 
         $this->io->writeln($this->dryRunMessage(sprintf('Creating class %s in %s', $class->getName(), $classFile)));
         $this->fs->dumpFile($classFile, $code);
