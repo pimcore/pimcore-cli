@@ -61,7 +61,7 @@ final class PimcoreLayoutContentFixer extends AbstractFixer
     {
         $indexes = array_keys($match);
 
-        $tokens->overrideRange($indexes[0], $indexes[count($indexes)-1], [
+        $replacement = [
             new Token([T_VARIABLE, '$this']),
             new Token([T_OBJECT_OPERATOR, '->']),
             new Token([T_STRING, 'slots']),
@@ -72,7 +72,9 @@ final class PimcoreLayoutContentFixer extends AbstractFixer
             new Token('('),
             new Token([T_CONSTANT_ENCAPSED_STRING, "'_content'"]),
             new Token(')'),
-        ]);
+        ];
+
+        $tokens->overrideRange($indexes[0], $indexes[count($indexes)-1], $replacement);
 
         $prev      = $tokens->getPrevMeaningfulToken($indexes[0]);
         $prevToken = $tokens[$prev];
@@ -84,6 +86,16 @@ final class PimcoreLayoutContentFixer extends AbstractFixer
             $prevToken->clear();
             $tokens->removeTrailingWhitespace($prev);
         }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function supports(\SplFileInfo $file)
+    {
+        $expectedExtension = '.html.php';
+
+        return substr($file->getFilename(), -strlen($expectedExtension)) === $expectedExtension;
     }
 
     /**
