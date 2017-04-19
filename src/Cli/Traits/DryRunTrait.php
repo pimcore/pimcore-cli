@@ -47,7 +47,7 @@ trait DryRunTrait
     protected function prefixDryRun(string $message, string $prefix = 'DRY-RUN'): string
     {
         return sprintf(
-            '<bg=cyan;fg=white>%s</> %s',
+            '<fg=cyan;bg=black>[%s]</> %s',
             $prefix,
             $message
         );

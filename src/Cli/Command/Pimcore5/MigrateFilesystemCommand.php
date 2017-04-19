@@ -95,7 +95,9 @@ class MigrateFilesystemCommand extends AbstractCommand
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = $this->io;
+
         $fs = $this->fs = new DryRunFilesystem($io, $this->isDryRun());
+        $fs->setForceVerbose(true);
 
         $path = $input->getArgument('path');
         if (!$fs->exists($path)) {

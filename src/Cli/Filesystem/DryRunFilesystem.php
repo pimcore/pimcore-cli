@@ -43,6 +43,11 @@ class DryRunFilesystem extends Filesystem
     private $printProperties = false;
 
     /**
+     * @var bool
+     */
+    private $forceVerbose = false;
+
+    /**
      * @param PimcoreStyle $io
      * @param bool $dryRun
      * @param bool $printProperties
@@ -54,9 +59,33 @@ class DryRunFilesystem extends Filesystem
         $this->printProperties = $printProperties;
     }
 
+    /**
+     * @param bool $forceVerbose
+     */
+    public function setForceVerbose(bool $forceVerbose)
+    {
+        $this->forceVerbose = $forceVerbose;
+    }
+
     protected function isDryRun(): bool
     {
         return $this->dryRun;
+    }
+
+    private function writeDebugMessage(string $message)
+    {
+        if (!$this->isDryRun() && !$this->io->isVerbose() && !$this->forceVerbose) {
+            return;
+        }
+
+        $prefix = '';
+        if ($this->isDryRun()) {
+            $prefix = $this->prefixDryRun('');
+        }
+
+        $message = sprintf('%sfs> %s', $prefix, $message);
+
+        $this->io->writeln($message);
     }
 
     /**
@@ -75,12 +104,12 @@ class DryRunFilesystem extends Filesystem
      */
     public function copy($originFile, $targetFile, $overwriteNewerFiles = false)
     {
-        $this->io->writeln($this->dryRunMessage(sprintf(
+        $this->writeDebugMessage(sprintf(
             'cp %s %s' . $this->formatPropertyString([
                 'overwriteNewerFiles' => $overwriteNewerFiles,
             ]),
             $originFile, $targetFile
-        )));
+        ));
 
         if (!$this->dryRun) {
             parent::copy($originFile, $targetFile, $overwriteNewerFiles);
@@ -99,13 +128,13 @@ class DryRunFilesystem extends Filesystem
     public function touch($files, $time = null, $atime = null)
     {
         foreach ($this->toIterator($files) as $file) {
-            $this->io->writeln($this->dryRunMessage(sprintf(
+            $this->writeDebugMessage(sprintf(
                 'touch %s' . $this->formatPropertyString([
                     'time'  => $time,
                     'atime' => $atime
                 ]),
                 $file
-            )));
+            ));
         }
 
         if (!$this->dryRun) {
@@ -123,10 +152,10 @@ class DryRunFilesystem extends Filesystem
     public function remove($files)
     {
         foreach ($this->toIterator($files) as $file) {
-            $this->io->writeln($this->dryRunMessage(sprintf(
+            $this->writeDebugMessage(sprintf(
                 'rm %s',
                 $file
-            )));
+            ));
         }
 
         if (!$this->dryRun) {
@@ -147,14 +176,14 @@ class DryRunFilesystem extends Filesystem
     public function chmod($files, $mode, $umask = 0000, $recursive = false)
     {
         foreach ($this->toIterator($files) as $file) {
-            $this->io->writeln($this->dryRunMessage(sprintf(
+            $this->writeDebugMessage(sprintf(
                 'chmod %s' . $this->formatPropertyString([
                     'mode'      => $mode,
                     'umask'     => $umask,
                     'recursive' => $recursive
                 ]),
                 $file
-            )));
+            ));
         }
 
         if (!$this->dryRun) {
@@ -174,13 +203,13 @@ class DryRunFilesystem extends Filesystem
     public function chown($files, $user, $recursive = false)
     {
         foreach ($this->toIterator($files) as $file) {
-            $this->io->writeln($this->dryRunMessage(sprintf(
+            $this->writeDebugMessage(sprintf(
                 'chown %s' . $this->formatPropertyString([
                     'user'      => $user,
                     'recursive' => $recursive
                 ]),
                 $file
-            )));
+            ));
         }
 
         if (!$this->dryRun) {
@@ -200,13 +229,13 @@ class DryRunFilesystem extends Filesystem
     public function chgrp($files, $group, $recursive = false)
     {
         foreach ($this->toIterator($files) as $file) {
-            $this->io->writeln($this->dryRunMessage(sprintf(
+            $this->writeDebugMessage(sprintf(
                 'chgrp %s' . $this->formatPropertyString([
                     'group'     => $group,
                     'recursive' => $recursive
                 ]),
                 $file
-            )));
+            ));
         }
 
         if (!$this->dryRun) {
@@ -225,13 +254,13 @@ class DryRunFilesystem extends Filesystem
      */
     public function symlink($originDir, $targetDir, $copyOnWindows = false)
     {
-        $this->io->writeln($this->dryRunMessage(sprintf(
+        $this->writeDebugMessage(sprintf(
             'ln -s %s %s' . $this->formatPropertyString([
                 'copyOnWindows' => $copyOnWindows,
             ]),
             $originDir,
             $targetDir
-        )));
+        ));
 
         if (!$this->dryRun) {
             parent::symlink($originDir, $targetDir, $copyOnWindows);
@@ -250,11 +279,11 @@ class DryRunFilesystem extends Filesystem
     public function hardlink($originFile, $targetFiles)
     {
         foreach ($this->toIterator($targetFiles) as $targetFile) {
-            $this->io->writeln($this->dryRunMessage(sprintf(
+            $this->writeDebugMessage(sprintf(
                 'ln %s %s',
                 $originFile,
                 $targetFile
-            )));
+            ));
         }
 
         if (!$this->dryRun) {
@@ -290,10 +319,10 @@ class DryRunFilesystem extends Filesystem
      */
     public function dumpFile($filename, $content)
     {
-        $this->io->writeln($this->dryRunMessage(sprintf(
+        $this->writeDebugMessage(sprintf(
             'dumpFile(%s, ...)',
             $filename
-        )));
+        ));
 
         if (!$this->dryRun) {
             parent::dumpFile($filename, $content);
@@ -311,12 +340,12 @@ class DryRunFilesystem extends Filesystem
     public function mkdir($dirs, $mode = 0777)
     {
         foreach ($this->toIterator($dirs) as $dir) {
-            $this->io->writeln($this->dryRunMessage(sprintf(
+            $this->writeDebugMessage(sprintf(
                 'mkdir %s' . $this->formatPropertyString([
                     'mode' => $mode,
                 ]),
                 $dir
-            )));
+            ));
         }
 
         if (!$this->dryRun) {
@@ -336,12 +365,12 @@ class DryRunFilesystem extends Filesystem
      */
     public function rename($origin, $target, $overwrite = false)
     {
-        $this->io->writeln($this->dryRunMessage(sprintf(
+        $this->writeDebugMessage(sprintf(
             'mv %s %s' . $this->formatPropertyString([
                 'overwrite' => $overwrite,
             ]),
             $origin, $target
-        )));
+        ));
 
         if (!$this->dryRun) {
             parent::rename($origin, $target, $overwrite);
