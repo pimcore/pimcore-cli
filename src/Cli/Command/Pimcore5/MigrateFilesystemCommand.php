@@ -24,7 +24,6 @@ use Pimcore\Cli\Console\Style\VersionFormatter;
 use Pimcore\Cli\Filesystem\DryRunFilesystem;
 use Pimcore\Cli\Pimcore5\Pimcore5Requirements;
 use Pimcore\Cli\Traits\DryRunCommandTrait;
-use Pimcore\Cli\Traits\DryRunTrait;
 use Pimcore\Cli\Util\FileUtils;
 use Pimcore\Cli\Util\VersionReader;
 use Symfony\Component\Console\Input\InputArgument;
