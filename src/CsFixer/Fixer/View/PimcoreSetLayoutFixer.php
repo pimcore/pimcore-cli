@@ -2,13 +2,13 @@
 
 namespace Pimcore\CsFixer\Fixer\View;
 
-use PhpCsFixer\AbstractFixer;
+use PhpCsFixer\AbstractFunctionReferenceFixer;
 use PhpCsFixer\FixerDefinition\CodeSample;
 use PhpCsFixer\FixerDefinition\FixerDefinition;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
 
-final class PimcoreSetLayoutFixer extends AbstractFixer
+final class PimcoreSetLayoutFixer extends AbstractFunctionReferenceFixer
 {
     /**
      * @inheritDoc
@@ -21,7 +21,31 @@ final class PimcoreSetLayoutFixer extends AbstractFixer
         );
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function isRisky()
+    {
+        return false;
+    }
+
     protected function applyFix(\SplFileInfo $file, Tokens $tokens)
+    {
+        $candidates = $this->findCandidates($tokens);
+
+        foreach ($candidates as $candidate) {
+            list($match, $openParenthesis, $closeParenthesis) = $candidate;
+
+            $this->processMatch($tokens, $match, $openParenthesis, $closeParenthesis);
+        }
+    }
+
+    /**
+     * @param Tokens $tokens
+     *
+     * @return array
+     */
+    private function findCandidates(Tokens $tokens)
     {
         $sequence = [
             [T_VARIABLE, '$this'],
@@ -33,6 +57,8 @@ final class PimcoreSetLayoutFixer extends AbstractFixer
             '('
         ];
 
+        $candidates = [];
+
         $currIndex = 0;
         while (null !== $currIndex) {
             $match = $tokens->findSequence($sequence, $currIndex, $tokens->count() - 1);
@@ -42,47 +68,28 @@ final class PimcoreSetLayoutFixer extends AbstractFixer
                 break;
             }
 
-            $indexes   = array_keys($match);
-            $lastIndex = array_pop($indexes);
-            $currIndex = $lastIndex + 1;
+            $indexes         = array_keys($match);
+            $openParenthesis = array_pop($indexes);
 
-            if ($currIndex >= count($tokens)) {
+            $closeParenthesis = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_PARENTHESIS_BRACE, $openParenthesis);
+
+            $candidates[] = [$match, $openParenthesis, $closeParenthesis];
+
+            $currIndex = $openParenthesis + 1;
+            if ($currIndex >= count($tokens) - 1) {
                 break;
             }
-
-            $this->processMatch($tokens, $match);
         }
+
+        return array_reverse($candidates);
     }
 
     /**
      * @param Tokens $tokens
      * @param Token[] $match
      */
-    private function processMatch(Tokens $tokens, array $match)
+    private function processMatch(Tokens $tokens, array $match, $openParenthesis, $closeParenthesis)
     {
-        $indexes  = array_keys($match);
-        $rangeEnd = $tokens->getNextTokenOfKind($indexes[count($indexes) - 1], [')']);
-
-        /** @var Token[] $argumentTokens */
-        $argumentTokens = [];
-
-        // find first argument - start at opening brace
-        $currentIndex = $indexes[count($indexes) - 1];
-        while (null !== $currentIndex) {
-            $currentIndex = $currentIndex + 1;
-
-            if (!isset($tokens[$currentIndex])) {
-                break;
-            }
-
-            $current = $tokens[$currentIndex];
-            if ($current->equalsAny([',', ')'])) {
-                break;
-            } else {
-                $argumentTokens[] = $current;
-            }
-        }
-
         $replacement = [
             new Token([T_VARIABLE, '$this']),
             new Token([T_OBJECT_OPERATOR, '->']),
@@ -90,26 +97,59 @@ final class PimcoreSetLayoutFixer extends AbstractFixer
             new Token('(')
         ];
 
-        // arguments is a single string (e.g. 'layout') -> just add the extension
-        if (count($argumentTokens) === 1 && $argumentTokens[0]->isGivenKind(T_CONSTANT_ENCAPSED_STRING)) {
-            $chars     = str_split($argumentTokens[0]->getContent());
-            $quoteChar = array_pop($chars);
-
-            $argumentTokens[0]->setContent(implode('', $chars) . '.html.php' . $quoteChar);
-        } else {
-            $argumentTokens[] = new Token([T_WHITESPACE, ' ']);
-            $argumentTokens[] = new Token('.');
-            $argumentTokens[] = new Token([T_WHITESPACE, ' ']);
-            $argumentTokens[] = new Token([T_CONSTANT_ENCAPSED_STRING, "'.html.php'"]);
-        }
-
-        foreach ($argumentTokens as $argumentToken) {
-            $replacement[] = $argumentToken;
+        $argument = $this->processArguments($tokens, $openParenthesis, $closeParenthesis);
+        foreach ($argument as $token) {
+            $replacement[] = $token;
         }
 
         $replacement[] = new Token(')');
 
-        $tokens->overrideRange($indexes[0], $rangeEnd, $replacement);
+        $indexes = array_keys($match);
+        $tokens->overrideRange($indexes[0], $closeParenthesis, $replacement);
+    }
+
+    /**
+     * Finds arguments, adds .html.php to the first one and drops the rest
+     *
+     * @param Tokens $tokens
+     * @param int $openParenthesis
+     * @param int $closeParenthesis
+     *
+     * @return Token[]
+     */
+    private function processArguments(Tokens $tokens, $openParenthesis, $closeParenthesis)
+    {
+        $arguments = $this->getArguments($tokens, $openParenthesis, $closeParenthesis);
+        $indexes   = array_keys($arguments);
+
+        // arguments is an array indexed by start -> end
+        $startIndex = $indexes[0];
+        $endIndex   = $arguments[$startIndex];
+
+        // we just use the first argument and drop the rest, so we just need tokens of the first argument
+        /** @var Token[] $argument */
+        $argument = [];
+
+        // first argument is a simple string -> just alter the string and add our file extension
+        if ($startIndex === $endIndex && $tokens[$startIndex]->isGivenKind(T_CONSTANT_ENCAPSED_STRING)) {
+            $chars     = str_split($tokens[$startIndex]->getContent());
+            $quoteChar = array_pop($chars);
+
+            $tokens[$startIndex]->setContent(implode('', $chars) . '.html.php' . $quoteChar);
+            $argument[] = $tokens[$startIndex];
+        } else {
+            // add all argument tokens and concat the file extension
+            for ($i = $startIndex; $i <= $endIndex; $i++) {
+                $argument[] = $tokens[$i];
+            }
+
+            $argument[] = new Token([T_WHITESPACE, ' ']);
+            $argument[] = new Token('.');
+            $argument[] = new Token([T_WHITESPACE, ' ']);
+            $argument[] = new Token([T_CONSTANT_ENCAPSED_STRING, "'.html.php'"]);
+        }
+
+        return $argument;
     }
 
     /**
