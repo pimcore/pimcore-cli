@@ -7,9 +7,12 @@ use PhpCsFixer\FixerDefinition\CodeSample;
 use PhpCsFixer\FixerDefinition\FixerDefinition;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
+use Pimcore\CsFixer\Fixer\Traits\FixerNameTrait;
 
-final class PimcoreSetLayoutFixer extends AbstractFunctionReferenceFixer
+final class SetLayoutFixer extends AbstractFunctionReferenceFixer
 {
+    use FixerNameTrait;
+
     /**
      * @inheritDoc
      */

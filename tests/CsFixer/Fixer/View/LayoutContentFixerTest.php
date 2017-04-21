@@ -2,12 +2,12 @@
 
 namespace Pimcore\Tests\CsFixer\Fixer\View;
 
-use Pimcore\CsFixer\Fixer\View\PimcoreLayoutContentFixer;
+use Pimcore\CsFixer\Fixer\View\LayoutContentFixer;
 
 /**
- * @covers PimcoreLayoutContentFixer
+ * @covers LayoutContentFixer
  */
-class PimcoreLayoutContentFixerTest extends AbstractViewFixerTestCase
+class LayoutContentFixerTest extends AbstractViewFixerTestCase
 {
     /**
      * @dataProvider provideFixCases

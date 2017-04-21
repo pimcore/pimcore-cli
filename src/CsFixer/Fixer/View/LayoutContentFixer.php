@@ -7,9 +7,12 @@ use PhpCsFixer\FixerDefinition\CodeSample;
 use PhpCsFixer\FixerDefinition\FixerDefinition;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
+use Pimcore\CsFixer\Fixer\Traits\FixerNameTrait;
 
-final class PimcoreLayoutContentFixer extends AbstractFixer
+final class LayoutContentFixer extends AbstractFixer
 {
+    use FixerNameTrait;
+
     /**
      * @inheritDoc
      */
@@ -74,7 +77,7 @@ final class PimcoreLayoutContentFixer extends AbstractFixer
             new Token(')'),
         ];
 
-        $tokens->overrideRange($indexes[0], $indexes[count($indexes)-1], $replacement);
+        $tokens->overrideRange($indexes[0], $indexes[count($indexes) - 1], $replacement);
 
         $prev      = $tokens->getPrevMeaningfulToken($indexes[0]);
         $prevToken = $tokens[$prev];

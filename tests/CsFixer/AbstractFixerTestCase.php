@@ -16,44 +16,26 @@ namespace Pimcore\Tests\CsFixer;
 
 use PhpCsFixer\FixerFactory;
 use PhpCsFixer\Test\AbstractFixerTestCase as BaseAbstractFixerTestCase;
-use Symfony\Component\Finder\Finder;
-use Symfony\Component\Finder\SplFileInfo;
+use Pimcore\CsFixer\Util\FixerResolver;
 
 abstract class AbstractFixerTestCase extends BaseAbstractFixerTestCase
 {
     /**
-     * Create fixer factory with all needed fixers registered.
-     *
-     * @return FixerFactory
+     * @inheritDoc
+     */
+    protected function getFixerName()
+    {
+        return sprintf('Pimcore/%s', parent::getFixerName());
+    }
+
+    /**
+     * @inheritDoc
      */
     protected function createFixerFactory()
     {
         $factory = FixerFactory::create();
-        $this->registerCustomFixers($factory);
+        $factory->registerCustomFixers(FixerResolver::getCustomFixers());
 
         return $factory;
-    }
-
-    private function registerCustomFixers(FixerFactory $factory)
-    {
-        static $customFixers = null;
-
-        if (null === $customFixers) {
-            $customFixers = [];
-
-            /** @var SplFileInfo $file */
-            foreach (Finder::create()->files()->in(__DIR__ . '/../../src/CsFixer/Fixer') as $file) {
-                $relativeNamespace = $file->getRelativePath();
-                $fixerClass        = 'Pimcore\\CsFixer\Fixer\\' . ($relativeNamespace ? $relativeNamespace . '\\' : '') . $file->getBasename('.php');
-
-                if ('Fixer' === substr($fixerClass, -5)) {
-                    $customFixers[] = $fixerClass;
-                }
-            }
-        }
-
-        foreach ($customFixers as $class) {
-            $factory->registerFixer(new $class(), false);
-        }
     }
 }
