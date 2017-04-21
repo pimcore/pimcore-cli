@@ -1,6 +1,6 @@
 <?php
 
-namespace PhpCsFixer\Fixer\Pimcore;
+namespace Pimcore\CsFixer\Fixer\View;
 
 use PhpCsFixer\AbstractFixer;
 use PhpCsFixer\FixerDefinition\CodeSample;

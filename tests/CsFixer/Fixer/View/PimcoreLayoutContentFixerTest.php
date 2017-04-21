@@ -1,9 +1,9 @@
 <?php
 
-namespace PhpCsFixer\Tests\Fixer\Pimcore;
+namespace Pimcore\Tests\CsFixer\Fixer\View;
 
-use PhpCsFixer\Fixer\Pimcore\PimcoreLayoutContentFixer;
-use PhpCsFixer\Test\AbstractFixerTestCase;
+use Pimcore\CsFixer\Fixer\View\PimcoreLayoutContentFixer;
+use Pimcore\Tests\CsFixer\AbstractFixerTestCase;
 
 /**
  * @covers PimcoreLayoutContentFixer

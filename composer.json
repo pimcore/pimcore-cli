@@ -1,23 +1,36 @@
 {
   "name": "pimcore/pimcore-cli",
-  "description": "Pimcore CLI tools",
+  "description": "Pimcore CLI Tools",
   "license": "GPL-3.0",
+  "require": {
+    "doctrine/common": "^2.7",
+    "friendsofphp/php-cs-fixer": "^2.2",
+    "raulfraile/distill": "^0.9.10",
+    "stecman/symfony-console-completion": "^0.7.0",
+    "symfony/console": "^3.2",
+    "symfony/filesystem": "^3.2",
+    "symfony/finder": "^3.2",
+    "symfony/intl": "^3.2",
+    "symfony/process": "^3.2",
+    "symfony/requirements-checker": "dev-master",
+    "zendframework/zend-code": "^3.1"
+  },
+  "require-dev": {
+    "gecko-packages/gecko-php-unit": "^2.0",
+    "phpunit/phpunit": "^5.0",
+    "symfony/phpunit-bridge": "^3.2"
+  },
+  "config": {
+    "sort-packages": true
+  },
   "autoload": {
     "psr-4": {
       "Pimcore\\": "src/"
     }
   },
-  "require": {
-    "symfony/console": "^3.2",
-    "symfony/requirements-checker": "dev-master",
-    "symfony/intl": "^3.2",
-    "symfony/process": "^3.2",
-    "stecman/symfony-console-completion": "^0.7.0",
-    "symfony/filesystem": "^3.2",
-    "raulfraile/distill": "^0.9.10",
-    "symfony/finder": "^3.2",
-    "doctrine/common": "^2.7",
-    "zendframework/zend-code": "^3.1",
-    "friendsofphp/php-cs-fixer": "^2.2"
+  "autoload-dev": {
+    "psr-4": {
+      "Pimcore\\Tests\\": "tests/"
+    }
   }
 }
