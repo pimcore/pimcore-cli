@@ -41,7 +41,7 @@ use Symfony\Component\Stopwatch\Stopwatch;
  * Runs PHP-CS-Fixer with our custom ruleset to ease view migration. This command
  * is heavily inspired by the FixCommand from the PHP-CS-Fixer package.
  */
-class FixCommand extends Command
+class FixViewsCommand extends Command
 {
     // Exit status 1 is reserved for environment constraints not matched.
     const EXIT_STATUS_FLAG_HAS_INVALID_FILES = 4;
@@ -94,7 +94,7 @@ class FixCommand extends Command
     protected function configure()
     {
         $this
-            ->setName('pimcore5:update-views')
+            ->setName('pimcore5:fix-views')
             ->setDescription('Changes common migration patterns in view files (e.g. strips leading slashes in template() calls)')
             ->setDefinition(
                 [

@@ -44,7 +44,7 @@ $application->addCommands([
     new Command\Pimcore5\MigrateFilesystemCommand(),
     new Command\Pimcore5\MigrateViewsCommand(),
     new Command\Pimcore5\MigrateAreabrickCommand(),
-    new Command\Pimcore5\FixCommand()
+    new Command\Pimcore5\FixViewsCommand()
 ]);
 
 $application->run();
