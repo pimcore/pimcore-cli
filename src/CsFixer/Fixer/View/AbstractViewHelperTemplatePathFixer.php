@@ -63,6 +63,16 @@ abstract class AbstractViewHelperTemplatePathFixer extends AbstractFunctionRefer
     abstract protected function getSequence(): array;
 
     /**
+     * Determine if helper result should be echoed
+     *
+     * @return bool
+     */
+    protected function needsEchoOutput(): bool
+    {
+        return true;
+    }
+
+    /**
      * Get argument index of the path argument
      *
      * @return int
@@ -93,7 +103,10 @@ abstract class AbstractViewHelperTemplatePathFixer extends AbstractFunctionRefer
     protected function processCandidate(Tokens $tokens, array $match, int $openParenthesis, int $closeParenthesis)
     {
         $this->processPathArgument($tokens, $match, $openParenthesis, $closeParenthesis);
-        $this->processEchoOutput($tokens, $match);
+
+        if ($this->needsEchoOutput()) {
+            $this->processEchoOutput($tokens, $match);
+        }
     }
 
     /**

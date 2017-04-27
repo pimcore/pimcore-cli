@@ -15,7 +15,7 @@ final class TemplateHelperFixer extends AbstractViewHelperTemplatePathFixer
     public function getDefinition()
     {
         return new FixerDefinition(
-            'Updates calls to $this->template() to use .html.php templates, to use correct casing and to echo the output',
+            'Updates calls to $this->template() to use .html.php templates, correct casing and to echo the output',
             [new CodeSample('<?php $this->template(\'includes/gallery.php\' ?>')]
         );
     }
