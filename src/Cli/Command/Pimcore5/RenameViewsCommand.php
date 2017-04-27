@@ -28,15 +28,15 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Finder\Finder;
 
-class MigrateViewsCommand extends AbstractCommand
+class RenameViewsCommand extends AbstractCommand
 {
     use DryRunCommandTrait;
 
     protected function configure()
     {
         $this
-            ->setName('pimcore5:migrate:views')
-            ->setDescription('Migrate view files (change extension and file casing)')
+            ->setName('pimcore5:views:rename')
+            ->setDescription('Rename view files (change extension and file casing)')
             ->addArgument('sourceDir', InputArgument::REQUIRED)
             ->addArgument('targetDir', InputArgument::REQUIRED)
             ->addOption(
@@ -151,6 +151,8 @@ class MigrateViewsCommand extends AbstractCommand
 
     /**
      * Add typehint header if it is not found
+     *
+     * TODO move this to the fix command
      *
      * @param string $content
      *

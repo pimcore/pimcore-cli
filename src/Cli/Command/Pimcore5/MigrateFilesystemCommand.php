@@ -74,7 +74,9 @@ class MigrateFilesystemCommand extends AbstractCommand
 
     protected function configure()
     {
-        $this->setName('pimcore5:migrate:filesystem');
+        $this
+            ->setName('pimcore5:migrate:filesystem')
+            ->setDescription('Migrates a Pimcore 4 filesystem to Pimcore 5 layout from a Pimcore 5 release ZIP');
 
         $this
             ->addArgument('path', InputArgument::REQUIRED, 'Path to Pimcore 4 installation')

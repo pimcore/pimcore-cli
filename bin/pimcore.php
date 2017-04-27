@@ -42,9 +42,9 @@ $application->addCommands([
     new Command\VersionCommand(),
     new Command\Pimcore5\CheckRequirementsCommand(),
     new Command\Pimcore5\MigrateFilesystemCommand(),
-    new Command\Pimcore5\MigrateViewsCommand(),
     new Command\Pimcore5\MigrateAreabrickCommand(),
-    new Command\Pimcore5\FixViewsCommand()
+    new Command\Pimcore5\RenameViewsCommand(),
+    new Command\Pimcore5\FixViewsCommand(),
 ]);
 
 $application->run();

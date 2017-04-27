@@ -27,7 +27,9 @@ class CheckRequirementsCommand extends AbstractCommand
 {
     protected function configure()
     {
-        $this->setName('pimcore5:check-requirements');
+        $this
+            ->setName('pimcore5:check-requirements')
+            ->setDescription('Checks if the current environment is able to run Pimcore 5');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)

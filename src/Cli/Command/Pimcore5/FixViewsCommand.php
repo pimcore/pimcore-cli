@@ -94,7 +94,7 @@ class FixViewsCommand extends Command
     protected function configure()
     {
         $this
-            ->setName('pimcore5:fix-views')
+            ->setName('pimcore5:views:fix')
             ->setDescription('Changes common migration patterns in view files (e.g. strips leading slashes in template() calls)')
             ->setDefinition(
                 [
