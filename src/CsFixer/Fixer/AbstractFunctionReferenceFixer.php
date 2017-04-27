@@ -88,20 +88,20 @@ abstract class AbstractFunctionReferenceFixer extends BaseAbstractFunctionRefere
         $startIndex = $indexes[$argumentIndex];
         $endIndex   = $arguments[$startIndex];
 
-        $argument = [];
+        $argumentTokens = [];
         for ($i = $startIndex; $i <= $endIndex; $i++) {
             // ignore leading whitespace tokens
-            if (empty($arguments) && $tokens[$i]->isGivenKind(T_WHITESPACE)) {
+            if (empty($argumentTokens) && $tokens[$i]->isGivenKind(T_WHITESPACE)) {
                 continue;
             }
 
             if ($keepIndex) {
-                $argument[$i] = $tokens[$i];
+                $argumentTokens[$i] = $tokens[$i];
             } else {
-                $argument[] = $tokens[$i];
+                $argumentTokens[] = $tokens[$i];
             }
         }
 
-        return $argument;
+        return $argumentTokens;
     }
 }

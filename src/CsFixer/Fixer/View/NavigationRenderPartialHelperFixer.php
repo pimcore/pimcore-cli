@@ -36,7 +36,6 @@ final class NavigationRenderPartialHelperFixer extends AbstractViewHelperTemplat
         ];
     }
 
-
     /**
      * @inheritDoc
      */
