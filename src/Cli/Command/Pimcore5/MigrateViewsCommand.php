@@ -143,7 +143,9 @@ class MigrateViewsCommand extends AbstractCommand
                 }
             }
 
-            $this->io->writeln('');
+            if ($this->io->isVerbose()) {
+                $this->io->writeln('');
+            }
         }
     }
 
