@@ -52,6 +52,11 @@ final class FixerResolver
                 $fixerClass        = 'Pimcore\\CsFixer\Fixer\\' . ($relativeNamespace ? $relativeNamespace . '\\' : '') . $file->getBasename('.php');
 
                 if ('Fixer' === substr($fixerClass, -5)) {
+                    $reflector = new \ReflectionClass($fixerClass);
+                    if (!$reflector->isInstantiable()) {
+                        continue;
+                    }
+
                     $customFixers[] = $fixerClass;
                 }
             }
