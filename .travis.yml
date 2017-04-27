@@ -27,9 +27,9 @@ before_install:
     # display tasks configuration for a job
     - set | grep ^TASK | sort
 
-    - wget http://cs.sensiolabs.org/download/php-cs-fixer-v2.phar -O $HOME/php-cs-fixer
-    - echo $PATH
-    - $HOME/php-cs-fixer --version
+    # download PHP-CS-Fixer
+    - wget http://cs.sensiolabs.org/download/php-cs-fixer-v2.phar -O $HOME/bin/php-cs-fixer && chmod +x $HOME/bin/php-cs-fixer
+    - php-cs-fixer --version
 
 install:
     - travis_retry composer update $DEFAULT_COMPOSER_FLAGS $COMPOSER_FLAGS
