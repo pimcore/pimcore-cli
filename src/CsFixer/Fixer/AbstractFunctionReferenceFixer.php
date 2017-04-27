@@ -90,6 +90,11 @@ abstract class AbstractFunctionReferenceFixer extends BaseAbstractFunctionRefere
 
         $argument = [];
         for ($i = $startIndex; $i <= $endIndex; $i++) {
+            // ignore leading whitespace tokens
+            if (empty($arguments) && $tokens[$i]->isGivenKind(T_WHITESPACE)) {
+                continue;
+            }
+
             if ($keepIndex) {
                 $argument[$i] = $tokens[$i];
             } else {
