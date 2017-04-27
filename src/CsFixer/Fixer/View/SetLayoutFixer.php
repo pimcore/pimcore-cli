@@ -2,11 +2,11 @@
 
 namespace Pimcore\CsFixer\Fixer\View;
 
-use PhpCsFixer\AbstractFunctionReferenceFixer;
 use PhpCsFixer\FixerDefinition\CodeSample;
 use PhpCsFixer\FixerDefinition\FixerDefinition;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
+use Pimcore\CsFixer\Fixer\AbstractFunctionReferenceFixer;
 use Pimcore\CsFixer\Fixer\Traits\FixerNameTrait;
 
 final class SetLayoutFixer extends AbstractFunctionReferenceFixer
@@ -34,22 +34,6 @@ final class SetLayoutFixer extends AbstractFunctionReferenceFixer
 
     protected function applyFix(\SplFileInfo $file, Tokens $tokens)
     {
-        $candidates = $this->findCandidates($tokens);
-
-        foreach ($candidates as $candidate) {
-            list($match, $openParenthesis, $closeParenthesis) = $candidate;
-
-            $this->processMatch($tokens, $match, $openParenthesis, $closeParenthesis);
-        }
-    }
-
-    /**
-     * @param Tokens $tokens
-     *
-     * @return array
-     */
-    private function findCandidates(Tokens $tokens)
-    {
         $sequence = [
             [T_VARIABLE, '$this'],
             [T_OBJECT_OPERATOR, '->'],
@@ -60,31 +44,13 @@ final class SetLayoutFixer extends AbstractFunctionReferenceFixer
             '('
         ];
 
-        $candidates = [];
+        $candidates = $this->findFunctionCallCandidates($tokens, $sequence);
 
-        $currIndex = 0;
-        while (null !== $currIndex) {
-            $match = $tokens->findSequence($sequence, $currIndex, $tokens->count() - 1);
+        foreach ($candidates as $candidate) {
+            list($match, $openParenthesis, $closeParenthesis) = $candidate;
 
-            // stop looping if didn't find any new matches
-            if (null === $match) {
-                break;
-            }
-
-            $indexes         = array_keys($match);
-            $openParenthesis = array_pop($indexes);
-
-            $closeParenthesis = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_PARENTHESIS_BRACE, $openParenthesis);
-
-            $candidates[] = [$match, $openParenthesis, $closeParenthesis];
-
-            $currIndex = $openParenthesis + 1;
-            if ($currIndex >= count($tokens) - 1) {
-                break;
-            }
+            $this->processMatch($tokens, $match, $openParenthesis, $closeParenthesis);
         }
-
-        return array_reverse($candidates);
     }
 
     /**
@@ -105,10 +71,8 @@ final class SetLayoutFixer extends AbstractFunctionReferenceFixer
             $replacement[] = $token;
         }
 
-        $replacement[] = new Token(')');
-
         $indexes = array_keys($match);
-        $tokens->overrideRange($indexes[0], $closeParenthesis, $replacement);
+        $tokens->overrideRange($indexes[0], $closeParenthesis - 1, $replacement);
     }
 
     /**
