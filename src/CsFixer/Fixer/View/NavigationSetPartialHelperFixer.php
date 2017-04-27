@@ -6,8 +6,6 @@ namespace Pimcore\CsFixer\Fixer\View;
 
 use PhpCsFixer\FixerDefinition\CodeSample;
 use PhpCsFixer\FixerDefinition\FixerDefinition;
-use PhpCsFixer\Tokenizer\Token;
-use PhpCsFixer\Tokenizer\Tokens;
 
 final class NavigationSetPartialHelperFixer extends AbstractViewHelperTemplatePathFixer
 {

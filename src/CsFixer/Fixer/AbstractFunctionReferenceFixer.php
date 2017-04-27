@@ -35,7 +35,7 @@ abstract class AbstractFunctionReferenceFixer extends BaseAbstractFunctionRefere
         }
 
         // add opening parenthesis if missing
-        if ($sequence[count($sequence) -1] !== '(') {
+        if ($sequence[count($sequence) - 1] !== '(') {
             throw new \InvalidArgumentException('Sequence must end in opening parenthesis!');
         }
 
