@@ -62,45 +62,77 @@ final class TemplateHelperFixer extends AbstractFunctionReferenceFixer
     private function processMatch(Tokens $tokens, array $match, int $openParenthesis, int $closeParenthesis)
     {
         $arguments = $this->getArguments($tokens, $openParenthesis, $closeParenthesis);
-        $argument  = $this->extractArgument($tokens, $arguments, 0);
+        $argumentTokens  = $this->extractArgumentTokens($tokens, $arguments, 0);
 
-        if (count($argument) === 1) {
+        $pathCasingToken = null;
+        $filenameToken   = null;
+
+        if (count($argumentTokens) === 1) {
             // easiest scenario - we have a single string argument
-            if ($argument[0]->isGivenKind(T_CONSTANT_ENCAPSED_STRING)) {
-                list($path, $quote) = $this->extractQuotedString($argument[0]->getContent());
-
-                $path = ltrim($path, '/');
-                $path = $this->changeTemplatePathExtension($path);
-                $path = $this->changeTemplatePathCasing($path);
-
-                $argument[0]->setContent($this->quoteString($path, $quote));
+            if ($argumentTokens[0]->isGivenKind(T_CONSTANT_ENCAPSED_STRING)) {
+                $pathCasingToken = $argumentTokens[0];
+                $filenameToken   = $argumentTokens[0];
             }
 
             // no string argument -> we skip this candidate as we don't know what to do
             // TODO trigger warning?
-        } elseif (count($argument) > 1) {
-
+        } elseif (count($argumentTokens) > 1) {
             // multiple tokens in first argument (e.g. concatenated strings or method call
             // handle first token if it is a string
-            if ($argument[0]->isGivenKind(T_CONSTANT_ENCAPSED_STRING)) {
-                list($path, $quote) = $this->extractQuotedString($argument[0]->getContent());
-
-                $path = ltrim($path, '/');
-                $path = $this->changeTemplatePathCasing($path, true, false);
-
-                $argument[0]->setContent($this->quoteString($path, $quote));
+            if ($argumentTokens[0]->isGivenKind(T_CONSTANT_ENCAPSED_STRING)) {
+                $pathCasingToken = $argumentTokens[0];
             }
 
             // handle last argument if it is a string
-            $lastArgument = $argument[count($argument) - 1];
-            if ($lastArgument->isGivenKind(T_CONSTANT_ENCAPSED_STRING)) {
-                list($path, $quote) = $this->extractQuotedString($lastArgument->getContent());
-
-                $path = $this->changeTemplatePathExtension($path);
-                $path = $this->changeTemplatePathCasing($path, false);
-
-                $lastArgument->setContent($this->quoteString($path, $quote));
+            $lastToken = $argumentTokens[count($argumentTokens) - 1];
+            if ($lastToken->isGivenKind(T_CONSTANT_ENCAPSED_STRING)) {
+                $filenameToken = $lastToken;
             }
+        }
+
+        if (null != $pathCasingToken) {
+            list($path, $quote) = $this->extractQuotedString($pathCasingToken->getContent());
+
+            $path = $this->changeTemplatePathFirstSegment($path);
+            $pathCasingToken->setContent($this->quoteString($path, $quote));
+        }
+
+        if (null != $filenameToken) {
+            list($path, $quote) = $this->extractQuotedString($filenameToken->getContent());
+
+            $path = $this->changeTemplatePathFilename($path);
+            $filenameToken->setContent($this->quoteString($path, $quote));
+        }
+
+        $this->fixOpenTag($tokens, $match);
+    }
+
+    private function fixOpenTag(Tokens $tokens, array $match)
+    {
+        $indexes   = array_keys($match);
+        $prev      = $tokens->getPrevMeaningfulToken($indexes[0]);
+
+        if (null === $prev) {
+            return;
+        }
+
+        $prevToken = $tokens[$prev];
+
+        // we're ok
+        if ($prevToken->isGivenKind([T_OPEN_TAG_WITH_ECHO, T_ECHO])) {
+            return;
+        }
+
+        // <?php $this->template() -> <?= $this->template()
+        if ($prevToken->isGivenKind(T_OPEN_TAG)) {
+            $tokens->overrideAt($prev, new Token([T_OPEN_TAG_WITH_ECHO, '<?=']));
+            $tokens->insertAt($prev + 1, new Token([T_WHITESPACE, ' ']));
+        } else {
+            // <?php foo(); $this->template() -> <?php foo; echo $this->template()
+            $tokens->insertAt($prev + 1, [
+                new Token([T_WHITESPACE, ' ']),
+                new Token([T_ECHO, 'echo']),
+            ]);
         }
     }
 
@@ -137,47 +169,53 @@ final class TemplateHelperFixer extends AbstractFunctionReferenceFixer
     }
 
     /**
-     * Changes extension from .php to .html php
+     * Changes the first segment of the path to CamelCase
      *
      * @param string $string
      *
      * @return string
      */
-    private function changeTemplatePathExtension(string $string): string
+    private function changeTemplatePathFirstSegment(string $string): string
     {
-        // replace .php with .html.php
-        $string = preg_replace('/(?<!\.html)(\.php)/', '.html.php', $string);
+        $string = ltrim($string, '/');
+        $parts  = explode('/', $string);
+
+        // first part of path to uppercase CamelCase
+        if (count($parts) > 1) {
+            $parts[0] = TextUtils::dashesToCamelCase($parts[0], true);
+        }
+
+        $string = implode('/', $parts);
 
         return $string;
     }
 
     /**
-     * Changes the first segment of the path to CamelCase and the filename to camelCase.html.php
+     * Changes the filename to camelCase.html.php
      *
      * @param string $string
-     * @param bool $handleFirstSegment
-     * @param bool $handleFilename
      *
      * @return string
      */
-    private function changeTemplatePathCasing(string $string, $handleFirstSegment = true, $handleFilename = true): string
+    private function changeTemplatePathFilename(string $string): string
     {
         $parts = explode('/', $string);
 
-        // first part of path to uppercase CamelCase
-        if ($handleFirstSegment && count($parts) > 1) {
-            $parts[0] = TextUtils::dashesToCamelCase($parts[0], true);
-        }
+        // filename to camelCase
+        $filename = array_pop($parts);
 
-        if ($handleFilename) {
-            // filename to camelCase
-            $filename = array_pop($parts);
-            $filename = preg_replace('/\.html\.php$/', '', $filename); // temporarily remove extension again
-            $filename = TextUtils::dashesToCamelCase($filename);
-            $filename = $filename . '.html.php';
+        // normalize extension to html.php if not alread done
+        $filename = preg_replace('/(?<!\.html)(\.php)/', '.html.php', $filename);
 
-            $parts[] = $filename;
-        }
+        // temporarily remove extension again
+        $filename = preg_replace('/\.html\.php$/', '', $filename);
+
+        $filename = TextUtils::dashesToCamelCase($filename);
+
+        // re-add extension
+        $filename = $filename . '.html.php';
+
+        $parts[] = $filename;
 
         $string = implode('/', $parts);
 
@@ -191,7 +229,7 @@ final class TemplateHelperFixer extends AbstractFunctionReferenceFixer
      *
      * @return Token[]
      */
-    private function extractArgument(Tokens $tokens, array $arguments, int $argumentIndex): array
+    private function extractArgumentTokens(Tokens $tokens, array $arguments, int $argumentIndex): array
     {
         $indexes = array_keys($arguments);
 
