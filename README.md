@@ -4,6 +4,10 @@
 
 A collection of command line tools for managing Pimcore installations.
 
+## Download
+
+You can download the latest release as PHAR from the [Releases Page](https://github.com/pimcore/pimcore-cli/releases).
+
 ## Documentation
 
 * [Pimcore 5 Migration](./doc/pimcore_5_migration.md)
