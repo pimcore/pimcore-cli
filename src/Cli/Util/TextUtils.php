@@ -20,6 +20,45 @@ namespace Pimcore\Cli\Util;
 class TextUtils
 {
     /**
+     * Extract quote and raw content from quoted string
+     *
+     * @param string $string
+     *
+     * @return array Array with extracted string as first item, quote as second
+     */
+    public static function extractQuotedString(string $string): array
+    {
+        $chars = str_split($string);
+
+        $startQuote = array_shift($chars);
+        if (!in_array($startQuote, ["'", '"'])) {
+            throw new \InvalidArgumentException(sprintf('String does not start with a quote. First char is "%s"', $startQuote));
+        }
+
+        $endQuote = array_pop($chars);
+        if ($endQuote !== $startQuote) {
+            throw new \InvalidArgumentException(sprintf('Start and end quotes do not match. Start: "%s" End: "%s"', $startQuote, $endQuote));
+        }
+
+        $string = implode('', $chars);
+
+        return [$string, $startQuote];
+    }
+
+    /**
+     * Quote a string
+     *
+     * @param string $string
+     * @param string $quote
+     *
+     * @return string
+     */
+    public static function quoteString(string $string, string $quote): string
+    {
+        return $quote . $string . $quote;
+    }
+
+    /**
      * @param string $content
      *
      * @return string
