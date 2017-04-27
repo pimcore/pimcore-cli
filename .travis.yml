@@ -28,7 +28,9 @@ before_install:
     - set | grep ^TASK | sort
 
     # download PHP-CS-Fixer
-    - wget http://cs.sensiolabs.org/download/php-cs-fixer-v2.phar -O $HOME/bin/php-cs-fixer && chmod +x $HOME/bin/php-cs-fixer
+    - mkdir -p $HOME/bin
+    - wget http://cs.sensiolabs.org/download/php-cs-fixer-v2.phar -O $HOME/bin/php-cs-fixer
+    - chmod +x $HOME/bin/php-cs-fixer
     - php-cs-fixer --version
 
 install:
