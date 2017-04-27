@@ -54,7 +54,7 @@ before_deploy:
     - composer info -D | sort
 
     # build phar file
-    - php -d phar.readonly=false box build
+    - php -d phar.readonly=false $HOME/bin/box build
 
 deploy:
     provider: releases
