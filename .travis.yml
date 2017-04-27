@@ -14,7 +14,7 @@ matrix:
     include:
         - php: 7.1
           env: DEPLOY=yes
-        - php: 7.0
+        # - php: 7.0
 
 cache:
     directories:
@@ -27,7 +27,9 @@ before_install:
     # display tasks configuration for a job
     - set | grep ^TASK | sort
 
-    - php-cs-fixer --version
+    - wget http://cs.sensiolabs.org/download/php-cs-fixer-v2.phar -O $HOME/php-cs-fixer
+    - echo $PATH
+    - $HOME/php-cs-fixer --version
 
 install:
     - travis_retry composer update $DEFAULT_COMPOSER_FLAGS $COMPOSER_FLAGS
