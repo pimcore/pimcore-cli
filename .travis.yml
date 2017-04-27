@@ -41,16 +41,28 @@ script:
     - if [ $TASK_TESTS == 1 ]; then vendor/bin/phpunit --verbose; fi
     - if [ $TASK_CS == 1 ]; then php-cs-fixer --diff --dry-run -v fix; fi
 
-#before_deploy:
-#    # install box2
-#    - curl -LSs http://box-project.github.io/box2/installer.php | php
-#    - php box.phar --version
+before_deploy:
+    # install box2
+    - (cd $HOME/bin && curl -LSs http://box-project.github.io/box2/installer.php | php && mv box.phar box)
+    - box --version
 
-#deploy:
-#    provider: releases
-#    file: build/pimcore.phar
-#    skip_cleanup: true
-#    on:
-#        repo: pimcore/pimcore-cli
-#        tags: true
-#        condition: $DEPLOY = yes
+    # ensure that deps will work on lowest supported PHP version
+    - composer config platform.php 2> /dev/null || composer config platform.php 7.0.0
+
+    # update deps to highest possible for lowest supported PHP version
+    - composer update $DEFAULT_COMPOSER_FLAGS --no-dev --prefer-stable
+    - composer info -D | sort
+
+    # build phar file
+    - php -d phar.readonly=false box build
+
+deploy:
+    provider: releases
+    file: build/pimcore.phar
+    skip_cleanup: true
+    api_key:
+        secure: jLqMdWsKCXSFRLr8S/FYhbVRoz6eXPrmUU6F0G2a3V8NGS25VgeCqBJuQFNjTZDn3c6EZj6wh1cf39FvT2cPvQTOXqAQMoqhe9ZiExMmSmrQXeWEk1g7bDlx2JYE2s4uuzvjBALu7/y78OA1akrAIg9N2hJ0uiS3W4xgPIzr3wjn7jouQkj7GwmaUhR+KNyn00s1dVBejcxMsv06vME50Bn8s4N9XkRX/U/w5R1+Pv2X69ZVcEi4cKxNi3IGEuWI8ioUR0W5gIUTkakL7GUfOYxb3JWXhjXINPmxK5Wa8TmXKVoDhOBWML/ToIg4neN7rcPGSQOuLruvsF/2ovOL74uD7htW1ftnxL2vUKfa6Ss2IKfx9YuWWuCVW22iFMwu0knevaCPUKsR1mMzaaaTP+HIr1JcIeUVX/7qWqDY7yX/3RwB3mQVUiRQpj8EKrbYJjWl3L7j6g+boMAu2NWvUiah7AnJMPPlK78cgyVfZvPZ7aMnZ1RPXeDw2hO9SjYZafY8xWUfEAIYm97lKsRWOVJ/jOLzS71ztV/hCj/t2vy53/CE/paenkGsqW9y2Vgo4HFA2hT8Av3BsYcpIwknJCMPXo7GsNCHoFiji02se85FypDpAVIW1gghNZB0S//snCiSqTSwHERweSWC4IuvQgpmMCKnvgq8xFsJbQGJfUA=
+    on:
+        repo: pimcore/pimcore-cli
+        tags: true
+        condition: $DEPLOY = yes
