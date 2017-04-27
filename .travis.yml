@@ -39,7 +39,7 @@ install:
 
 script:
     - if [ $TASK_TESTS == 1 ]; then vendor/bin/phpunit --verbose; fi
-    - if [ $TASK_CS == 1 ]; then php php-cs-fixer --diff --dry-run -v fix; fi
+    - if [ $TASK_CS == 1 ]; then php-cs-fixer --diff --dry-run -v fix; fi
 
 #before_deploy:
 #    # install box2
