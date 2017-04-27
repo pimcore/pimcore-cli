@@ -54,6 +54,7 @@ before_deploy:
     - composer info -D | sort
 
     # build phar file
+    - mkdir -p build
     - php -d phar.readonly=false $HOME/bin/box build
 
 deploy:
