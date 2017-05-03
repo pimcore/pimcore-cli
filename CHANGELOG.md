@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.2.3
+-----
+
+Add RMT config
+
 0.2.0
 -----
 
