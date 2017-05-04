@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.2.4
+-----
+
+Fix issues detected by PHPStan
+
 0.2.3
 -----
 
