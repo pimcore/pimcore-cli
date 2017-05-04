@@ -275,7 +275,7 @@ class MigrateAreabrickCommand extends AbstractCommand
             } elseif (in_array($file->getFilename(), $supported)) {
                 $result['views'][] = $file;
             } else {
-                $this->io->note(sprintf('File %s is not supported. Please migrate file manually.'));
+                $this->io->note(sprintf('File %s is not supported. Please migrate file manually.', $file->getFilename()));
 
                 $this->hasWarnings = true;
             }

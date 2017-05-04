@@ -28,7 +28,7 @@ class VersionReader
     private $path;
 
     /**
-     * @var array
+     * @var array|null
      */
     private $data;
 

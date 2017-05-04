@@ -372,7 +372,7 @@ class MigrateFilesystemCommand extends AbstractCommand
         }
 
         if (version_compare($version, '4.5', '<')) {
-            throw new \RuntimeException(sprintf('Please update to version 4.5.0 before upgrading to version 5', $version));
+            throw new \RuntimeException(sprintf('Current version: %s. Please update to version 4.5.0 before upgrading to version 5', $version));
         }
 
         $this->io->success('Pimcore version prerequisites match');
