@@ -5,6 +5,9 @@ _default:
         - display-last-changes
         - tests-check:
             command: vendor/bin/phpunit
+        - command:
+            cmd: php-cs-fixer --diff --dry-run -v fix
+            live_output: false
     version-generator:
         semantic:
             allow-label: true
