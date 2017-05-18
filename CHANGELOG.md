@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.3.1
+-----
+
+Call pimcore5:config:fix implicitely when migrating filesystem..
+
 0.3.0
 -----
 
