@@ -24,7 +24,8 @@ $ cd <path-to-installation>
 # migrate filesystem
 $ pimcore.phar pimcore5:migrate-filesystem . ../pimcore-unstable.zip
 
-# update system.php to match pimcore 5 requirements
+# the config:fix command could update the system.php to match pimcore 5 requirements but
+# there is no need to call it after a filesystem migration as it is implicitely called
 $ pimcore.phar pimcore5:config:fix var/config/system.php
 
 # rename view scripts (pass -m option to move files instead of copying them)

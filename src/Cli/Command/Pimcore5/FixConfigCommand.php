@@ -49,6 +49,8 @@ class FixConfigCommand extends AbstractCommand
     {
         $file = $input->getArgument('config-file');
 
+        $this->io->comment(sprintf('Updating config file "%s" to match Pimcore 5 requirements', $file));
+
         $processor = new Pimcore5ConfigProcessor();
 
         try {

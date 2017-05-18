@@ -26,6 +26,7 @@ use Pimcore\Cli\Pimcore5\Pimcore5Requirements;
 use Pimcore\Cli\Traits\DryRunCommandTrait;
 use Pimcore\Cli\Util\FileUtils;
 use Pimcore\Cli\Util\VersionReader;
+use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -161,7 +162,8 @@ class MigrateFilesystemCommand extends AbstractCommand
                 ->extractZip($zipFile)
                 ->createNewDirectories()
                 ->moveFilesIntoPlace()
-                ->moveLegacyFiles();
+                ->moveLegacyFiles()
+                ->fixConfig();
         } catch (\Exception $e) {
             return $this->handleException($e, 5);
         }
@@ -339,6 +341,33 @@ class MigrateFilesystemCommand extends AbstractCommand
                 $fs->rename($source, $target);
             }
         }
+
+        return $this;
+    }
+
+    private function fixConfig(): self
+    {
+        $file = $this->path('var', 'config', 'system.php');
+
+        if (!file_exists($file)) {
+            $this->io->comment('Not updating config as var/config/system.php was not found');
+
+            return $this;
+        }
+
+        $arguments = [
+            'config-file' => $file
+        ];
+
+        if ($this->isDryRun()) {
+            $arguments['--dry-run'] = true;
+        }
+
+        $command = $this->getApplication()->find('pimcore5:config:fix');
+        $command->run(
+            new ArrayInput($arguments),
+            $this->io->getOutput()
+        );
 
         return $this;
     }
