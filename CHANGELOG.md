@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.3.0
+-----
+
+Add pimcore5:config:fix command
+
 0.2.4
 -----
 
