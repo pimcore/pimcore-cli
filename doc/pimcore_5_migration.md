@@ -8,6 +8,7 @@ The Pimcore CLI ships with a couple of scripts which ease the migration to Pimco
 |-----------------------------------|-------------|
 | `pimcore5:check-requirements`     | Checks if your environment matches the requirements for Pimcore 5. |
 | `pimcore5:migrate:filesystem`     | Migrates your filesystem to Pimcore 5. Unpacks ZIP and moves stuff into place |
+| `pimcore5:config:fix`             | Updates `system.php` to match Pimcore 5 requirements |
 | `pimcore5:migrate:areabrick`      | Migrates a Pimcore 4 areabrick (XML format) to Pimcore 5 format (Areabrick class) |
 | `pimcore5:views:rename`           | Migrates views to new naming conventions for PHP templating engine (changes extension from `.php` to `.html.php` and changes filenames from dashed-case to camelCase |
 | `pimcore5:views:fix`              | Rewrites templates with common changes needed for Pimcore 5 templating (e.g. changes `setLayout()` to `extend()`) |
@@ -22,6 +23,9 @@ $ cd <path-to-installation>
 
 # migrate filesystem
 $ pimcore.phar pimcore5:migrate-filesystem . ../pimcore-unstable.zip
+
+# update system.php to match pimcore 5 requirements
+$ pimcore.phar pimcore5:config:fix var/config/system.php
 
 # rename view scripts (pass -m option to move files instead of copying them)
 $ pimcore.phar pimcore5:views:rename legacy/website/views/scripts app/Resources/views
