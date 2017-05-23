@@ -52,16 +52,30 @@ trait RenameViewCommandTrait
         }
 
         $filename = array_pop($pathParts);
-        if (!$input->getOption('no-rename-filename')) {
-            $filename = TextUtils::dashesToCamelCase($filename);
-        }
-
-        $filename = preg_replace('/\.php$/', '.html.php', $filename);
+        $filename = $this->processFilenameExtension($input, $filename);
 
         $pathParts[] = $filename;
 
         $path = implode(DIRECTORY_SEPARATOR, $pathParts);
 
         return $path;
+    }
+
+    private function processFilenameExtension(InputInterface $input, string $filename): string
+    {
+        // normalize extension to html.php if not already done
+        $filename = preg_replace('/(?<!\.html)(\.php)/', '.html.php', $filename);
+
+        // temporarily remove extension again
+        $filename = preg_replace('/\.html\.php$/', '', $filename);
+
+        if (!$input->getOption('no-rename-filename')) {
+            $filename = TextUtils::dashesToCamelCase($filename);
+        }
+
+        // re-add extension
+        $filename = $filename . '.html.php';
+
+        return $filename;
     }
 }

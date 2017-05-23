@@ -238,7 +238,7 @@ abstract class AbstractViewHelperTemplatePathFixer extends AbstractFunctionRefer
         // filename to camelCase
         $filename = array_pop($parts);
 
-        // normalize extension to html.php if not alread done
+        // normalize extension to html.php if not already done
         $filename = preg_replace('/(?<!\.html)(\.php)/', '.html.php', $filename);
 
         // temporarily remove extension again
