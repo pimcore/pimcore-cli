@@ -42,9 +42,9 @@ class RenameViewsCommand extends AbstractCommand
             ->addArgument('sourceDir', InputArgument::REQUIRED)
             ->addArgument('targetDir', InputArgument::REQUIRED)
             ->addOption(
-                'move', 'm',
+                'copy', 'c',
                 InputOption::VALUE_NONE,
-                'Move files instead of copying them'
+                'Copy files instead of moving them'
             )
             ->addOption(
                 'no-type-header', 'T',
@@ -89,11 +89,11 @@ class RenameViewsCommand extends AbstractCommand
                 continue;
             }
 
-            if ($input->getOption('move')) {
+            if ($input->getOption('copy')) {
+                $fs->copy($file->getRealPath(), $targetPath);
+            } else {
                 $fs->mkdir(dirname($targetPath));
                 $fs->rename($file->getRealPath(), $targetPath);
-            } else {
-                $fs->copy($file->getRealPath(), $targetPath);
             }
 
             if (!$addTypehintHeader) {

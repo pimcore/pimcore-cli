@@ -82,6 +82,11 @@ class MigrateAreabrickCommand extends AbstractCommand
                 'src/ directory'
             )
             ->addOption(
+                'copy', 'c',
+                InputOption::VALUE_NONE,
+                'Copy files instead of moving them'
+            )
+            ->addOption(
                 'bundle', 'b',
                 InputOption::VALUE_REQUIRED,
                 'Bundle namespace to use (you can use / instead of \\)',
@@ -325,7 +330,12 @@ class MigrateAreabrickCommand extends AbstractCommand
                 $sourceFile = $typeFile->getRealPath();
                 $targetFile = FileUtils::buildPath($typePath, $filename);
 
-                $this->fs->copy($sourceFile, $targetFile);
+                if ($this->io->getInput()->getOption('copy')) {
+                    $this->fs->copy($sourceFile, $targetFile);
+                } else {
+                    $this->fs->mkdir(dirname($targetFile));
+                    $this->fs->rename($sourceFile, $targetFile);
+                }
             }
         }
     }
