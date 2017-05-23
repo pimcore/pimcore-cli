@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.4.1
+-----
+
+Do not process filename extension multiple times in db references command
+
 0.4.0
 -----
 
