@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.4.0
+-----
+
+Move files by default and add pimcore5:views:update-db-references command.
+
 0.3.1
 -----
 
