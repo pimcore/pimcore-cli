@@ -18,6 +18,7 @@ declare(strict_types=1);
 namespace Pimcore\Cli\Command\Pimcore5;
 
 use Pimcore\Cli\Command\AbstractCommand;
+use Pimcore\Cli\Command\Pimcore5\Traits\RenameViewCommandTrait;
 use Pimcore\Cli\Filesystem\DryRunFilesystem;
 use Pimcore\Cli\Traits\DryRunCommandTrait;
 use Pimcore\Cli\Util\FileUtils;
@@ -30,6 +31,7 @@ use Symfony\Component\Finder\Finder;
 
 class RenameViewsCommand extends AbstractCommand
 {
+    use RenameViewCommandTrait;
     use DryRunCommandTrait;
 
     protected function configure()
@@ -45,22 +47,12 @@ class RenameViewsCommand extends AbstractCommand
                 'Move files instead of copying them'
             )
             ->addOption(
-                'no-rename-filename', 'R',
-                InputOption::VALUE_NONE,
-                'Do not convert filenames from dashed-case to camelCase'
-            )
-            ->addOption(
-                'no-rename-first-directory', 'D',
-                InputOption::VALUE_NONE
-            )
-            ->addOption(
                 'no-type-header', 'T',
                 InputOption::VALUE_NONE,
                 'Do not add typehint header'
             )
-        ;
-
-        $this->configureDryRunOption();
+            ->configureViewRenameOptions()
+            ->configureDryRunOption();
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -89,24 +81,8 @@ class RenameViewsCommand extends AbstractCommand
 
         foreach ($finder as $file) {
             $relativePath = str_replace($sourceDir . DIRECTORY_SEPARATOR, '', $file->getRealPath());
-
-            $pathParts = explode(DIRECTORY_SEPARATOR, $relativePath);
-
-            if (!$input->getOption('no-rename-first-directory') && count($pathParts) > 1) {
-                $pathParts[0] = TextUtils::dashesToCamelCase($pathParts[0], true);
-            }
-
-            $filename = array_pop($pathParts);
-
-            if (!$input->getOption('no-rename-filename')) {
-                $filename = TextUtils::dashesToCamelCase($filename);
-            }
-
-            $filename = preg_replace('/\.php$/', '.html.php', $filename);
-
-            $pathParts[] = $filename;
-
-            $targetPath = $targetDir . DIRECTORY_SEPARATOR . implode(DIRECTORY_SEPARATOR, $pathParts);
+            $updatedPath  = $this->processPath($input, $relativePath);
+            $targetPath   = $targetDir . DIRECTORY_SEPARATOR . $updatedPath;
 
             if ($fs->exists($targetPath)) {
                 $this->io->writeln(sprintf('<comment>WARNING:</comment> File %s already exists, skipping...', $targetPath));
@@ -138,7 +114,7 @@ class RenameViewsCommand extends AbstractCommand
 
                 if ($updatedContent !== $content) {
                     if (false === @file_put_contents($targetPath, $updatedContent)) {
-                        throw new \RuntimeException(sprintf('Failed to write file "%s".', $filename));
+                        throw new \RuntimeException(sprintf('Failed to write file "%s".', $targetPath));
                     }
                 }
             }

@@ -43,6 +43,7 @@ $application->addCommands([
     new Command\Pimcore5\CheckRequirementsCommand(),
     new Command\Pimcore5\MigrateFilesystemCommand(),
     new Command\Pimcore5\MigrateAreabrickCommand(),
+    new Command\Pimcore5\UpdateDbReferencesCommand(),
     new Command\Pimcore5\RenameViewsCommand(),
     new Command\Pimcore5\FixViewsCommand(),
     new Command\Pimcore5\FixConfigCommand(),

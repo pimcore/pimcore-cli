@@ -27,6 +27,8 @@ trait DryRunCommandTrait
 
     /**
      * @param string|null $description
+     *
+     * @return $this
      */
     protected function configureDryRunOption(string $description = null)
     {
@@ -39,6 +41,8 @@ trait DryRunCommandTrait
             'dry-run', 'N', InputOption::VALUE_NONE,
             $description
         );
+
+        return $this;
     }
 
     protected function isDryRun(): bool

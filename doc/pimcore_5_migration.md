@@ -4,14 +4,15 @@ The Pimcore CLI ships with a couple of scripts which ease the migration to Pimco
 
 > Before running any migration tasks please make sure you have a proper backup!
 
-| Command                           | Description |
-|-----------------------------------|-------------|
-| `pimcore5:check-requirements`     | Checks if your environment matches the requirements for Pimcore 5. |
-| `pimcore5:migrate:filesystem`     | Migrates your filesystem to Pimcore 5. Unpacks ZIP and moves stuff into place |
-| `pimcore5:config:fix`             | Updates `system.php` to match Pimcore 5 requirements |
-| `pimcore5:migrate:areabrick`      | Migrates a Pimcore 4 areabrick (XML format) to Pimcore 5 format (Areabrick class) |
-| `pimcore5:views:rename`           | Migrates views to new naming conventions for PHP templating engine (changes extension from `.php` to `.html.php` and changes filenames from dashed-case to camelCase |
-| `pimcore5:views:fix`              | Rewrites templates with common changes needed for Pimcore 5 templating (e.g. changes `setLayout()` to `extend()`) |
+| Command                               | Description |
+|---------------------------------------|-------------|
+| `pimcore5:check-requirements`         | Checks if your environment matches the requirements for Pimcore 5. |
+| `pimcore5:migrate:filesystem`         | Migrates your filesystem to Pimcore 5. Unpacks ZIP and moves stuff into place |
+| `pimcore5:config:fix`                 | Updates `system.php` to match Pimcore 5 requirements |
+| `pimcore5:migrate:areabrick`          | Migrates a Pimcore 4 areabrick (XML format) to Pimcore 5 format (Areabrick class) |
+| `pimcore5:views:rename`               | Migrates views to new naming conventions for PHP templating engine (changes extension from `.php` to `.html.php` and changes filenames from dashed-case to camelCase |
+| `pimcore5:views:update-db-references` | Updates DB references to view files (updates documents setting a custom template |
+| `pimcore5:views:fix`                  | Rewrites templates with common changes needed for Pimcore 5 templating (e.g. changes `setLayout()` to `extend()`) |
 
 A typical migration scenario could look like the following. The  `migrate:views` and `fix-views` commands make a couple
 of assumptions regarding file naming which may not fit your needs. Please check what has been done and revert what you
@@ -36,6 +37,9 @@ $ pimcore.phar pimcore5:views:rename legacy/website/views/layouts app/Resources/
 
 # fix views (make sure you check what has been changed!)
 $ pimcore.phar pimcore5:views:fix app/Resources/views
+
+# fix view db references (documents setting a custom template)
+$ pimcore.phar pimcore5:views:update-db-references
 
 # migrate a legacy areabrick to new format (make sure to read any warnings returned by the command)
 $ pimcore.phar pimcore5:migrate:areabrick legacy/website/views/areas/gallery/area.xml app src

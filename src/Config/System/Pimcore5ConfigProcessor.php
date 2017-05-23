@@ -26,7 +26,7 @@ class Pimcore5ConfigProcessor
     public function readConfig(string $file): array
     {
         if (!file_exists($file)) {
-            throw new \InvalidArgumentException(sprintf('File "%" does not exist', $file));
+            throw new \InvalidArgumentException(sprintf('File "%s" does not exist', $file));
         }
 
         $file = new \SplFileInfo($file);
