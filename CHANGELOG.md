@@ -1,35 +1,20 @@
 Changelog
 =========
 
-0.4.1
------
-
-Do not process filename extension multiple times in db references command
-
 0.4.0
 -----
 
-Move files by default and add pimcore5:views:update-db-references command.
+* Move files by default and add pimcore5:views:update-db-references command
 
 0.3.1
 -----
 
-Call pimcore5:config:fix implicitely when migrating filesystem..
+* Call pimcore5:config:fix implicitely when migrating filesystem
 
 0.3.0
 -----
 
-Add pimcore5:config:fix command
-
-0.2.4
------
-
-Fix issues detected by PHPStan
-
-0.2.3
------
-
-Add RMT config
+* Add pimcore5:config:fix command
 
 0.2.0
 -----

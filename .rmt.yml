@@ -23,9 +23,5 @@ master:
         vcs-tag:
             tag-prefix: 'v'
     pre-release-actions:
-        changelog-update:
-            format: addTop
-            file: CHANGELOG.md
-            insert-at: 3
         vcs-commit:
             commit-message: "Release v%version%"
