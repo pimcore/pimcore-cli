@@ -17,8 +17,8 @@ final class NavigationSetPartialHelperFixer extends AbstractViewHelperTemplatePa
         // this does not check/handle an echo call as we don't know if navigation should be echoed at this point
 
         return new FixerDefinition(
-            'Updates calls to $navigation->setPartial() to use .html.php templates and correct casing',
-            [new CodeSample('<?php $navigation->setPartial(\'includes/navigation.php\' ?>')]
+            'Updates calls to $this->navigation()->setPartial() to use .html.php templates and correct casing',
+            [new CodeSample('<?php $this->navigation()->setPartial(\'includes/navigation.php\' ?>')]
         );
     }
 
