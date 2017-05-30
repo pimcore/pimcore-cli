@@ -21,8 +21,8 @@ class NavigationRenderPartialHelperFixerTest extends AbstractViewFixerTestCase
     {
         return [
             [
-                '<?php $this->navigation($navigation)->menu()->setUseTranslator(false)->renderPartial($mainNav, \'Navigation/partials/sidebar.html.php\'); ?>',
-                '<?php $this->navigation($navigation)->menu()->setUseTranslator(false)->renderPartial($mainNav, \'/navigation/partials/sidebar.php\'); ?>',
+                '<?php $this->navigation()->menu()->setUseTranslator(false)->renderPartial($mainNav, \'Navigation/partials/sidebar.html.php\'); ?>',
+                '<?php $this->navigation()->menu()->setUseTranslator(false)->renderPartial($mainNav, \'/navigation/partials/sidebar.php\'); ?>',
             ],
         ];
     }

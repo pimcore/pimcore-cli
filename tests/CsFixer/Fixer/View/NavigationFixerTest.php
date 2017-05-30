@@ -25,8 +25,8 @@ class NavigationFixerTest extends AbstractViewFixerTestCase
                 '<?php $this->pimcoreNavigation(); ?>',
             ],
             [
-                '<?php $this->navigation($navigation)->menu()->setUseTranslator(false)->renderPartial($mainNav, \'Navigation/partials/sidebar.html.php\'); ?>',
-                '<?php $this->pimcoreNavigation($navigation)->menu()->setUseTranslator(false)->renderPartial($mainNav, \'Navigation/partials/sidebar.html.php\'); ?>',
+                '<?php $this->navigation()->menu()->setUseTranslator(false)->renderPartial($mainNav, \'Navigation/partials/sidebar.html.php\'); ?>',
+                '<?php $this->pimcoreNavigation()->menu()->setUseTranslator(false)->renderPartial($mainNav, \'Navigation/partials/sidebar.html.php\'); ?>',
             ],
         ];
     }
