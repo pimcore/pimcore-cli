@@ -22,8 +22,7 @@ use Stecman\Component\Symfony\Console\BashCompletion\CompletionCommand;
 $requiredVersion = '7.0';
 if (version_compare(PHP_VERSION, $requiredVersion, '<')) {
     file_put_contents('php://stderr', sprintf(
-        "Pimcore CLI Tools require PHP 7.0 version or higher and your system has\n".
-        "PHP %s version installed.\n\n".
+        "Pimcore CLI Tools require PHP 7.0 version or higher. Your current PHP version is: %s\n",
         PHP_VERSION
     ));
 
