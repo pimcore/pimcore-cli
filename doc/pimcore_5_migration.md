@@ -23,7 +23,7 @@ don't need. This may get more flexible/configurable in the future.
 $ cd <path-to-installation>
 
 # migrate filesystem
-$ pimcore.phar pimcore5:migrate-filesystem . ../pimcore-unstable.zip
+$ pimcore.phar pimcore5:migrate:filesystem . ../pimcore-unstable.zip
 
 # the config:fix command could update the system.php to match pimcore 5 requirements but
 # there is no need to call it after a filesystem migration as it is implicitely called
