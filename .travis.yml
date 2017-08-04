@@ -27,23 +27,17 @@ before_install:
     # display tasks configuration for a job
     - set | grep ^TASK | sort
 
-    # download PHP-CS-Fixer
-    - mkdir -p $HOME/bin
-    - wget http://cs.sensiolabs.org/download/php-cs-fixer-v2.phar -O $HOME/bin/php-cs-fixer
-    - chmod +x $HOME/bin/php-cs-fixer
-    - php-cs-fixer --version
-
 install:
     - travis_retry composer update $DEFAULT_COMPOSER_FLAGS $COMPOSER_FLAGS
     - composer info -D | sort
 
 script:
     - if [ $TASK_TESTS == 1 ]; then vendor/bin/phpunit --verbose; fi
-    - if [ $TASK_CS == 1 ]; then php-cs-fixer --diff --dry-run -v fix; fi
+    - if [ $TASK_CS == 1 ]; then vendor/bin/php-cs-fixer --diff --dry-run -v fix; fi
 
 before_deploy:
     # install box2
-    - (cd $HOME/bin && curl -LSs http://box-project.github.io/box2/installer.php | php && mv box.phar box)
+    - (mkdir -p $HOME/bin && cd $HOME/bin && curl -LSs http://box-project.github.io/box2/installer.php | php && mv box.phar box)
     - box --version
 
     # ensure that deps will work on lowest supported PHP version
