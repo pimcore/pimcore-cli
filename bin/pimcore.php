@@ -39,6 +39,7 @@ $application = new Application('Pimcore CLI Tools');
 $application->addCommands([
     new CompletionCommand(),
     new Command\VersionCommand(),
+    new Command\SelfUpdateCommand(),
     new Command\Pimcore5\CheckRequirementsCommand(),
     new Command\Pimcore5\MigrateFilesystemCommand(),
     new Command\Pimcore5\MigrateAreabrickCommand(),
