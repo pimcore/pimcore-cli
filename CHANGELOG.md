@@ -1,6 +1,11 @@
 Changelog
 =========
 
+0.5.0
+-----
+
+* Added `self-update` command
+
 0.4.0
 -----
 
