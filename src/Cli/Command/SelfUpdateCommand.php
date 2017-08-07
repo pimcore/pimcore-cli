@@ -53,7 +53,7 @@ class SelfUpdateCommand extends AbstractCommand
 
         if ($result) {
             $this->io->writeln(sprintf(
-                'Update available! The current stable build available is: %s. Current version: %s',
+                'Update available! The current stable build available is: <comment>%s</comment>. Current version: <comment>%s</comment>',
                 $updater->getNewVersion(),
                 $this->getApplication()->getVersion()
             ));
@@ -61,7 +61,7 @@ class SelfUpdateCommand extends AbstractCommand
             $this->io->writeln('There are no stable builds available.');
         } else {
             $this->io->writeln(sprintf(
-                'You are already using the latest version %s',
+                'You are already using the latest version <comment>%s</comment>',
                 $this->getApplication()->getVersion()
             ));
         }
@@ -73,7 +73,7 @@ class SelfUpdateCommand extends AbstractCommand
     {
         if (!$updater->hasUpdate()) {
             $this->io->writeln(sprintf(
-                'You are already using the latest version %s',
+                'You are already using the latest version <comment>%s</comment>',
                 $this->getApplication()->getVersion()
             ));
 
@@ -85,11 +85,11 @@ class SelfUpdateCommand extends AbstractCommand
 
         try {
             if ($updater->update()) {
-                $this->io->success(sprintf('Successfully updated to version %s', $newVersion));
+                $this->io->success(sprintf('Successfully updated to version <comment>%s</comment>', $newVersion));
 
                 return 0;
             } else {
-                $this->io->error(sprintf('Failed to update to version %s', $newVersion));
+                $this->io->error(sprintf('Failed to update to version <comment>%s</comment>', $newVersion));
 
                 return 1;
             }
@@ -97,9 +97,9 @@ class SelfUpdateCommand extends AbstractCommand
             $this->io->error(sprintf('Update failed: %s', $e->getMessage()));
 
             if ($updater->rollback()) {
-                $this->io->warning(sprintf('Rolled back to version %s', $currentVersion));
+                $this->io->warning(sprintf('Rolled back to version <comment>%s</comment>', $currentVersion));
             } else {
-                $this->io->error(sprintf('Failed to roll back to version %s', $currentVersion));
+                $this->io->error(sprintf('Failed to roll back to version <comment>%s</comment>', $currentVersion));
             }
 
             return 2;
