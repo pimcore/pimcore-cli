@@ -13,12 +13,11 @@
  * @license    http://www.pimcore.org/license     GPLv3 and PEL
  */
 
-// CLI has no memory/time limits
 use Pimcore\Cli\Command;
 use Pimcore\Cli\Console\Application;
 use Stecman\Component\Symfony\Console\BashCompletion\CompletionCommand;
 
-// only run in PHP >= 7
+// only run on PHP >= 7
 $requiredVersion = '7.0';
 if (version_compare(PHP_VERSION, $requiredVersion, '<')) {
     file_put_contents('php://stderr', sprintf(
@@ -29,6 +28,7 @@ if (version_compare(PHP_VERSION, $requiredVersion, '<')) {
     exit(1);
 }
 
+// CLI has no memory/time limits
 @ini_set('memory_limit', -1);
 @ini_set('max_execution_time', -1);
 @ini_set('max_input_time', -1);
