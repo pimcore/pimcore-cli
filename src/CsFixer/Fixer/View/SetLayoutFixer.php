@@ -4,6 +4,7 @@ namespace Pimcore\CsFixer\Fixer\View;
 
 use PhpCsFixer\FixerDefinition\CodeSample;
 use PhpCsFixer\FixerDefinition\FixerDefinition;
+use PhpCsFixer\Tokenizer\Analyzer\ArgumentsAnalyzer;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
 use Pimcore\CsFixer\Fixer\AbstractFunctionReferenceFixer;
@@ -86,7 +87,8 @@ final class SetLayoutFixer extends AbstractFunctionReferenceFixer
      */
     private function processArguments(Tokens $tokens, $openParenthesis, $closeParenthesis)
     {
-        $arguments = $this->getArguments($tokens, $openParenthesis, $closeParenthesis);
+        $analyzer  = new ArgumentsAnalyzer();
+        $arguments = $analyzer->getArguments($tokens, $openParenthesis, $closeParenthesis);
         $indexes   = array_keys($arguments);
 
         // arguments is an array indexed by start -> end

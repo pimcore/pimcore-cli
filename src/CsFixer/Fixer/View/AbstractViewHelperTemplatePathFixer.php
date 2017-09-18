@@ -17,6 +17,7 @@ declare(strict_types=1);
 
 namespace Pimcore\CsFixer\Fixer\View;
 
+use PhpCsFixer\Tokenizer\Analyzer\ArgumentsAnalyzer;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
 use Pimcore\Cli\Util\TextUtils;
@@ -158,7 +159,8 @@ abstract class AbstractViewHelperTemplatePathFixer extends AbstractFunctionRefer
      */
     protected function processPathArgument(Tokens $tokens, array $match, int $openParenthesis, int $closeParenthesis)
     {
-        $arguments      = $this->getArguments($tokens, $openParenthesis, $closeParenthesis);
+        $analyzer       = new ArgumentsAnalyzer();
+        $arguments      = $analyzer->getArguments($tokens, $openParenthesis, $closeParenthesis);
         $argumentTokens = $this->extractArgumentTokens($tokens, $arguments, $this->getPathArgumentIndex());
 
         $pathCasingToken = null;
