@@ -44,7 +44,7 @@ final class PartialHelperFixer extends AbstractViewHelperTemplatePathFixer
         foreach ($match as $i => $token) {
             // change call from partial() to render()
             if ($token->isGivenKind(T_STRING) && $token->getContent() === 'partial') {
-                $token->setContent('render');
+                $tokens->offsetSet($i, new Token([$token->getId(), 'render']));
             }
         }
 

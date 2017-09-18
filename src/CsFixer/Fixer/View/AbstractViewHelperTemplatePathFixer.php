@@ -159,48 +159,74 @@ abstract class AbstractViewHelperTemplatePathFixer extends AbstractFunctionRefer
      */
     protected function processPathArgument(Tokens $tokens, array $match, int $openParenthesis, int $closeParenthesis)
     {
-        $analyzer       = new ArgumentsAnalyzer();
-        $arguments      = $analyzer->getArguments($tokens, $openParenthesis, $closeParenthesis);
-        $argumentTokens = $this->extractArgumentTokens($tokens, $arguments, $this->getPathArgumentIndex());
+        $analyzer        = new ArgumentsAnalyzer();
+        $arguments       = $analyzer->getArguments($tokens, $openParenthesis, $closeParenthesis);
+        $argumentTokens  = $this->extractArgumentTokens($tokens, $arguments, $this->getPathArgumentIndex(), true);
+        $argumentIndexes = array_keys($argumentTokens);
 
-        $pathCasingToken = null;
-        $filenameToken   = null;
+        /** @var int $pathCasingTokenIndex */
+        $pathCasingTokenIndex = null;
+
+        /** @var int $filenameTokenIndex */
+        $filenameTokenIndex = null;
 
         if (count($argumentTokens) === 1) {
+            $firstTokenIndex = $argumentIndexes[0];
+            $firstToken      = $argumentTokens[$firstTokenIndex];
+
             // easiest scenario - we have a single string argument
-            if ($argumentTokens[0]->isGivenKind(T_CONSTANT_ENCAPSED_STRING)) {
-                $pathCasingToken = $argumentTokens[0];
-                $filenameToken   = $argumentTokens[0];
+            if ($firstToken->isGivenKind(T_CONSTANT_ENCAPSED_STRING)) {
+                $pathCasingTokenIndex = $firstTokenIndex;
+                $filenameTokenIndex   = $firstTokenIndex;
             }
 
             // no string argument -> we skip this candidate as we don't know what to do
             // TODO trigger warning?
         } elseif (count($argumentTokens) > 1) {
+            $firstTokenIndex = $argumentIndexes[0];
+            $firstToken      = $argumentTokens[$firstTokenIndex];
+
+            $lastTokenIndex = $argumentIndexes[count($argumentIndexes) - 1];
+            $lastToken      = $argumentTokens[$lastTokenIndex];
+
             // multiple tokens in first argument (e.g. concatenated strings or method call
             // handle first token if it is a string
-            if ($argumentTokens[0]->isGivenKind(T_CONSTANT_ENCAPSED_STRING)) {
-                $pathCasingToken = $argumentTokens[0];
+            if ($firstToken->isGivenKind(T_CONSTANT_ENCAPSED_STRING)) {
+                $pathCasingTokenIndex = $firstTokenIndex;
             }
 
             // handle last argument if it is a string
-            $lastToken = $argumentTokens[count($argumentTokens) - 1];
             if ($lastToken->isGivenKind(T_CONSTANT_ENCAPSED_STRING)) {
-                $filenameToken = $lastToken;
+                $filenameTokenIndex = $lastTokenIndex;
             }
         }
 
-        if (null != $pathCasingToken) {
+        if (null !== $pathCasingTokenIndex) {
+            $pathCasingToken = $tokens->offsetGet($pathCasingTokenIndex);
+
             list($path, $quote) = TextUtils::extractQuotedString($pathCasingToken->getContent());
 
             $path = $this->normalizeFirstTemplatePathSegment($path);
-            $pathCasingToken->setContent(TextUtils::quoteString($path, $quote));
+            $path = TextUtils::quoteString($path, $quote);
+
+            $tokens->offsetSet(
+                $pathCasingTokenIndex,
+                new Token([$pathCasingToken->getId(), $path])
+            );
         }
 
-        if (null != $filenameToken) {
+        if (null != $filenameTokenIndex) {
+            $filenameToken = $tokens->offsetGet($filenameTokenIndex);
+
             list($path, $quote) = TextUtils::extractQuotedString($filenameToken->getContent());
 
             $path = $this->normalizeTemplatePathFilename($path);
-            $filenameToken->setContent(TextUtils::quoteString($path, $quote));
+            $path = TextUtils::quoteString($path, $quote);
+
+            $tokens->offsetSet(
+                $filenameTokenIndex,
+                new Token([$filenameToken->getId(), $path])
+            );
         }
     }
 

@@ -104,7 +104,7 @@ final class SetLayoutFixer extends AbstractFunctionReferenceFixer
             $chars     = str_split($tokens[$startIndex]->getContent());
             $quoteChar = array_pop($chars);
 
-            $tokens[$startIndex]->setContent(implode('', $chars) . '.html.php' . $quoteChar);
+            $tokens[$startIndex] = new Token([$tokens[$startIndex]->getId(), implode('', $chars) . '.html.php' . $quoteChar]);
             $argument[] = $tokens[$startIndex];
         } else {
             // add all argument tokens and concat the file extension
