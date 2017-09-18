@@ -242,7 +242,7 @@ class FixViewsCommand extends Command
         }
 
         $config = new Config();
-        $config->setCacheFile('pimcore_cli.fix.cache');
+        $config->setCacheFile('.pimcore_cli.fix.cache');
         $config->registerCustomFixers($fixers);
         $config->setRules($rules);
 
