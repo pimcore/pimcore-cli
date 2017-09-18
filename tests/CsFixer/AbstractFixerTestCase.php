@@ -15,7 +15,7 @@
 namespace Pimcore\Tests\CsFixer;
 
 use PhpCsFixer\FixerFactory;
-use PhpCsFixer\Test\AbstractFixerTestCase as BaseAbstractFixerTestCase;
+use PhpCsFixer\Tests\Test\AbstractFixerTestCase as BaseAbstractFixerTestCase;
 use Pimcore\CsFixer\Util\FixerResolver;
 
 abstract class AbstractFixerTestCase extends BaseAbstractFixerTestCase
