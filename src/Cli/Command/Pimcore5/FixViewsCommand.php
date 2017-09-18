@@ -164,10 +164,10 @@ class FixViewsCommand extends Command
         if ('none' === $progressType || null === $stdErr) {
             $progressOutput = new NullOutput();
         } elseif ('run-in' === $progressType) {
-            $progressOutput = new ProcessOutput($stdErr, $this->eventDispatcher, null);
+            $progressOutput = new ProcessOutput($stdErr, $this->eventDispatcher, null, null);
         } else {
             $finder         = new \ArrayIterator(iterator_to_array($finder));
-            $progressOutput = new ProcessOutput($stdErr, $this->eventDispatcher, count($finder));
+            $progressOutput = new ProcessOutput($stdErr, $this->eventDispatcher, count($finder), count($finder));
         }
 
         $runner = new Runner(
