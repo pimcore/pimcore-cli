@@ -83,10 +83,10 @@ final class LayoutContentFixer extends AbstractFixer
         $prevToken = $tokens[$prev];
 
         if ($prevToken->isGivenKind(T_OPEN_TAG_WITH_ECHO)) {
-            $tokens->overrideAt($prev, new Token([T_OPEN_TAG, '<?php ']));
+            $tokens->offsetSet($prev, new Token([T_OPEN_TAG, '<?php ']));
             $tokens->removeTrailingWhitespace($prev);
         } elseif ($prevToken->isGivenKind(T_ECHO)) {
-            $prevToken->clear();
+            $tokens->clearAt($prev);
             $tokens->removeTrailingWhitespace($prev);
         }
     }

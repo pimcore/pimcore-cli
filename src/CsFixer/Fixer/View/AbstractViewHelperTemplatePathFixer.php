@@ -134,7 +134,7 @@ abstract class AbstractViewHelperTemplatePathFixer extends AbstractFunctionRefer
 
         // <?php $this->template() -> <?= $this->template()
         if ($prevToken->isGivenKind(T_OPEN_TAG)) {
-            $tokens->overrideAt($prev, new Token([T_OPEN_TAG_WITH_ECHO, '<?=']));
+            $tokens->offsetSet($prev, new Token([T_OPEN_TAG_WITH_ECHO, '<?=']));
             $tokens->insertAt($prev + 1, new Token([T_WHITESPACE, ' ']));
         } else {
             // <?php foo(); $this->template() -> <?php foo; echo $this->template()
