@@ -166,6 +166,7 @@ final class ImportsModifier
      * @param int $classStart
      *
      * @return array
+     *
      * @internal param Tokens $tokens
      */
     private function getImports(int $namespaceStart, int $classStart): array

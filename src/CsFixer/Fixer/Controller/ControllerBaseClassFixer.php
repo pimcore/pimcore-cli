@@ -153,6 +153,6 @@ final class ControllerBaseClassFixer extends AbstractFixer
 
     private function isNewlineToken(Token $token): bool
     {
-        return ($token->isWhitespace() && false !== strpos($token->getContent(), "\n"));
+        return $token->isWhitespace() && false !== strpos($token->getContent(), "\n");
     }
 }
