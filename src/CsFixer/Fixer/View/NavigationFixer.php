@@ -51,7 +51,6 @@ final class NavigationFixer extends AbstractFunctionReferenceFixer
 
             $indexes = array_keys($match);
             $tokens->offsetSet($indexes[2], new Token([$match[$indexes[2]]->getId(), 'navigation']));
-
         }
     }
 
