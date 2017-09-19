@@ -10,10 +10,13 @@ use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
 use PhpCsFixer\Tokenizer\TokensAnalyzer;
 use Pimcore\CsFixer\Fixer\Traits\FixerNameTrait;
+use Pimcore\CsFixer\Fixer\Traits\SupportsControllerTrait;
+use Pimcore\CsFixer\Tokenizer\ImportsModifier;
 
 final class ActionRequestFixer extends AbstractFixer
 {
     use FixerNameTrait;
+    use SupportsControllerTrait;
 
     /**
      * @inheritDoc
@@ -24,25 +27,6 @@ final class ActionRequestFixer extends AbstractFixer
             'Adds a Request $request parameter to controller actions',
             [new CodeSample('public function fooAction()')]
         );
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function supports(\SplFileInfo $file)
-    {
-        $expectedExtension = '.php';
-
-        if (!substr($file->getFilename(), -strlen($expectedExtension)) === $expectedExtension) {
-            return false;
-        }
-
-        $baseName = $file->getBasename($expectedExtension);
-        if (!preg_match('/Controller$/', $baseName)) {
-            return false;
-        }
-
-        return true;
     }
 
     /**
@@ -71,7 +55,8 @@ final class ActionRequestFixer extends AbstractFixer
             $updated = $this->updateActions($tokens, $tokensAnalyzer, $classStart, $classEnd);
 
             if ($updated) {
-                $this->addRequestImport($tokens, $classStart);
+                $importsModifier = new ImportsModifier($tokens);
+                $importsModifier->addImport($classStart, 'Symfony\\Component\\HttpFoundation\\Request');
             }
         }
     }
@@ -151,124 +136,5 @@ final class ActionRequestFixer extends AbstractFixer
         }
 
         return $updated;
-    }
-
-    private function addRequestImport(Tokens $tokens, int $classStart)
-    {
-        $namespaceStart = $this->getNamespaceStart($tokens, $classStart);
-        if (null === $namespaceStart) {
-            return;
-        }
-
-        $importTokens = [
-            new Token([T_WHITESPACE, "\n"]),
-            new Token([T_USE, 'use']),
-            new Token([T_WHITESPACE, ' ']),
-            new Token([T_STRING, 'Symfony']),
-            new Token([T_NS_SEPARATOR, '\\']),
-            new Token([T_STRING, 'Component']),
-            new Token([T_NS_SEPARATOR, '\\']),
-            new Token([T_STRING, 'HttpFoundation']),
-            new Token([T_NS_SEPARATOR, '\\']),
-            new Token([T_STRING, 'Request']),
-            new Token(';')
-        ];
-
-        $uses = $this->getImportUses($tokens, $namespaceStart, $classStart);
-        if (0 === count($uses)) {
-            array_unshift($importTokens, new Token([T_WHITESPACE, "\n"]));
-            $tokens->insertAt($namespaceStart, $importTokens);
-
-            return;
-        }
-
-        $importString = $this->stringifyTokenSequence($importTokens);
-
-        $hasImport      = false;
-        $insertPosition = $namespaceStart;
-        foreach ($uses as $use) {
-            $useString = $this->stringifyTokenSequence($use['use']);
-
-            // simple check if Request was already imported. this will fail for group imports or other
-            // more sophicsticated notations, but handling all cases is overkill
-            if (false !== strpos($useString, 'Symfony\\Component\\HttpFoundation\\Request')) {
-                $hasImport = true;
-                break;
-            }
-
-            $cmp = strcmp($importString, $useString);
-
-            if ($cmp >= 0) {
-                $insertPosition = $use['end'] + 1;
-            } elseif ($cmp < 0) {
-                break;
-            }
-        }
-
-        if (!$hasImport) {
-            $tokens->insertAt($insertPosition, $importTokens);
-        }
-    }
-
-    /**
-     * @param Token[] $tokens
-     *
-     * @return string
-     */
-    private function stringifyTokenSequence(array $tokens): string
-    {
-        $string = '';
-        foreach ($tokens as $token) {
-            $string .= $token->getContent();
-        }
-
-        return trim($string);
-    }
-
-    private function getNamespaceStart(Tokens $tokens, int $classStart)
-    {
-        $namespaceStart = null;
-        for ($i = $classStart; $i >= 0; $i--) {
-            if ($tokens[$i]->isGivenKind(T_NAMESPACE)) {
-                $nextTokenIndex = $tokens->getNextTokenOfKind($i, [';', '{']);
-                if (null !== $nextTokenIndex) {
-                    $namespaceStart = $nextTokenIndex;
-                }
-
-                break;
-            }
-
-            if ($tokens[$i]->isGivenKind(T_OPEN_TAG)) {
-                $namespaceStart = $i;
-                break;
-            }
-        }
-
-        return $namespaceStart;
-    }
-
-    private function getImportUses(Tokens $tokens, int $namespaceStart, int $classStart)
-    {
-        $uses = [];
-        for ($index = $namespaceStart; $index <= $classStart; ++$index) {
-            $token = $tokens[$index];
-
-            if ($token->isGivenKind(T_USE)) {
-                $useEnd = $tokens->getNextTokenOfKind($index, [';']);
-
-                $use = [];
-                for ($i = $index; $i <= $useEnd; $i++) {
-                    $use[] = $tokens[$i];
-                }
-
-                $uses[] = [
-                    'start' => $index,
-                    'end'   => $useEnd,
-                    'use'   => $use,
-                ];
-            }
-        }
-
-        return $uses;
     }
 }

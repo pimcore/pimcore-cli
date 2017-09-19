@@ -154,6 +154,30 @@ class TestController extends FrontendController
 }
 EOF;
 
+        $noNamespaceNoUseInput = <<<'EOF'
+<?php
+
+class TestController
+{
+    public function fooAction($foo, $bar)
+    {
+    }
+}
+EOF;
+
+        $noNamespaceNoUseExpected = <<<'EOF'
+<?php
+
+use Symfony\Component\HttpFoundation\Request;
+
+class TestController
+{
+    public function fooAction(Request $request, $foo, $bar)
+    {
+    }
+}
+EOF;
+
         $alreadyExistingNamespaceIgnoredInput = <<<'EOF'
 <?php
 
@@ -230,6 +254,10 @@ EOF;
             [
                 $noNamespaceExpected,
                 $noNamespaceInput
+            ],
+            [
+                $noNamespaceNoUseExpected,
+                $noNamespaceNoUseInput,
             ],
             [
                 $alreadyExistingNamespaceIgnoredExpected,
