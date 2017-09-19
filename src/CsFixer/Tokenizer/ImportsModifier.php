@@ -52,6 +52,7 @@ final class ImportsModifier
             }
         }
 
+        $manipulator  = new TokenInsertManipulator($this->tokens);
         $importTokens = $this->createImportSequence($className);
 
         $imports = $this->getImports($namespaceStart, $classStart);
@@ -59,7 +60,7 @@ final class ImportsModifier
             $leadingNewlines  = $hasNamespace ? 2 : 1;
             $trailingNewlines = $hasNamespace ? 0 : 1;
 
-            $this->insertImport($namespaceStart, $importTokens, $leadingNewlines, $trailingNewlines);
+            $manipulator->insertAtIndex($namespaceStart, $importTokens, $leadingNewlines, $trailingNewlines);
 
             return;
         }
@@ -90,54 +91,7 @@ final class ImportsModifier
         }
 
         if (!$hasImport) {
-            $this->insertImport($insertPosition, $importTokens, 1, 0);
-        }
-    }
-
-    /**
-     * Inserts import sequence at given position and handles adding new lines before and after inserting.
-     *
-     * The difficulty is that we can't just add a \n token before after the sequence, but we need to edit an existing
-     * whitespace token if it is the previous/next one as consequent whitespace tokens lead to errors.
-     *
-     * @param int $index
-     * @param array $importTokens
-     * @param int $leadingNewlines
-     * @param int $trailingNewlines
-     */
-    private function insertImport(int $index, array $importTokens, int $leadingNewlines = 0, int $trailingNewlines = 0)
-    {
-        $this->tokens->insertAt($index, $importTokens);
-
-        if ($leadingNewlines > 0) {
-            $leadingContent = str_repeat("\n", $leadingNewlines);
-
-            $previousToken = $this->tokens[$index - 1];
-
-            if ($previousToken->isWhitespace()) {
-                $this->tokens->offsetSet(
-                    $index - 1,
-                    new Token([$previousToken->getId(), $previousToken->getContent() . $leadingContent])
-                );
-            } else {
-                $this->tokens->insertAt($index, new Token([T_WHITESPACE, $leadingContent]));
-            }
-        }
-
-        if ($trailingNewlines > 0) {
-            $trailingContent = str_repeat("\n", $trailingNewlines);
-
-            $endIndex  = $index + count($importTokens);
-            $nextToken = $this->tokens[$endIndex + 1];
-
-            if ($nextToken->isWhitespace()) {
-                $this->tokens->offsetSet(
-                    $endIndex + 1,
-                    new Token([$nextToken->getId(), $trailingContent . $nextToken->getContent()])
-                );
-            } else {
-                $this->tokens->insertAt($endIndex + 1, new Token([T_WHITESPACE, $trailingContent]));
-            }
+            $manipulator->insertAtIndex($insertPosition, $importTokens, 1, 0);
         }
     }
 
