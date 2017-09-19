@@ -46,6 +46,11 @@ final class ActionRequestFixer extends AbstractFixer
                 continue;
             }
 
+            $className = $tokens->getNextMeaningfulToken($index);
+            if (!$className || !$this->isValidControllerName($tokens[$className]->getContent())) {
+                continue;
+            }
+
             // figure out where the classy starts
             $classStart = $tokens->getNextTokenOfKind($index, ['{']);
 

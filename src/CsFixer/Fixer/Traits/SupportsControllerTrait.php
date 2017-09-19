@@ -31,10 +31,15 @@ trait SupportsControllerTrait
         }
 
         $baseName = $file->getBasename($expectedExtension);
-        if (!preg_match('/Controller$/', $baseName)) {
+        if (!$this->isValidControllerName($baseName)) {
             return false;
         }
 
         return true;
+    }
+
+    public function isValidControllerName(string $name): bool
+    {
+        return (bool) preg_match('/Controller$/', $name);
     }
 }

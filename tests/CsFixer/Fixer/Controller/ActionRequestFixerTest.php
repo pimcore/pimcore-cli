@@ -242,6 +242,19 @@ class TestController extends FrontendController
 }
 EOF;
 
+        $nonControllerClassIgnored = <<<'EOF'
+<?php
+
+namespace AppBundle\Controller;
+
+class TestPresenter
+{
+    public function fooAction()
+    {
+    }
+}
+EOF;
+
         return [
             [
                 $emptyActionExpected,
@@ -273,6 +286,10 @@ EOF;
             ],
             [
                 $nonActionMethodIgnored,
+                null
+            ],
+            [
+                $nonControllerClassIgnored,
                 null
             ],
         ];
