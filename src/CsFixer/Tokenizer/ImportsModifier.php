@@ -40,22 +40,26 @@ final class ImportsModifier
      */
     public function addImport(int $classStart, string $className)
     {
+        $hasNamespace = true;
+
         $namespaceStart = $this->getNamespaceStart($classStart);
         if (null === $namespaceStart) {
-            return;
-        }
+            $namespaceStart = $this->getOpenTagStart($classStart);
+            $hasNamespace   = false;
 
-        $leadingNewline  = true;
-        $trailingNewline = false;
+            if (null === $namespaceStart) {
+                return;
+            }
+        }
 
         $importTokens = $this->createImportSequence($className);
 
         $imports = $this->getImports($namespaceStart, $classStart);
         if (0 === count($imports)) {
-            // add a trailing new line if it's a new use block
-            $trailingNewline = true;
+            $leadingNewlines  = $hasNamespace ? 2 : 1;
+            $trailingNewlines = $hasNamespace ? 0 : 1;
 
-            $this->insertImport($namespaceStart, $importTokens, $leadingNewline, $trailingNewline);
+            $this->insertImport($namespaceStart, $importTokens, $leadingNewlines, $trailingNewlines);
 
             return;
         }
@@ -86,7 +90,7 @@ final class ImportsModifier
         }
 
         if (!$hasImport) {
-            $this->insertImport($insertPosition, $importTokens, $leadingNewline, $trailingNewline);
+            $this->insertImport($insertPosition, $importTokens, 1, 0);
         }
     }
 
@@ -98,37 +102,41 @@ final class ImportsModifier
      *
      * @param int $index
      * @param array $importTokens
-     * @param bool $leadingNewline
-     * @param bool $trailingNewline
+     * @param int $leadingNewlines
+     * @param int $trailingNewlines
      */
-    private function insertImport(int $index, array $importTokens, bool $leadingNewline = true, bool $trailingNewline = false)
+    private function insertImport(int $index, array $importTokens, int $leadingNewlines = 0, int $trailingNewlines = 0)
     {
         $this->tokens->insertAt($index, $importTokens);
 
-        if ($leadingNewline) {
+        if ($leadingNewlines > 0) {
+            $leadingContent = str_repeat("\n", $leadingNewlines);
+
             $previousToken = $this->tokens[$index - 1];
 
             if ($previousToken->isWhitespace()) {
                 $this->tokens->offsetSet(
                     $index - 1,
-                    new Token([$previousToken->getId(), $previousToken->getContent() . "\n"])
+                    new Token([$previousToken->getId(), $previousToken->getContent() . $leadingContent])
                 );
             } else {
-                $this->tokens->insertAt($index, new Token([T_WHITESPACE, "\n"]));
+                $this->tokens->insertAt($index, new Token([T_WHITESPACE, $leadingContent]));
             }
         }
 
-        if ($trailingNewline) {
+        if ($trailingNewlines > 0) {
+            $trailingContent = str_repeat("\n", $trailingNewlines);
+
             $endIndex  = $index + count($importTokens);
             $nextToken = $this->tokens[$endIndex + 1];
 
             if ($nextToken->isWhitespace()) {
                 $this->tokens->offsetSet(
                     $endIndex + 1,
-                    new Token([$nextToken->getId(), "\n" . $nextToken->getContent()])
+                    new Token([$nextToken->getId(), $trailingContent . $nextToken->getContent()])
                 );
             } else {
-                $this->tokens->insertAt($endIndex + 1, new Token([T_WHITESPACE, "\n"]));
+                $this->tokens->insertAt($endIndex + 1, new Token([T_WHITESPACE, $trailingContent]));
             }
         }
     }
@@ -154,8 +162,7 @@ final class ImportsModifier
     }
 
     /**
-     * Namespace start is either after namespace declaration or after php open tag if
-     * no namespace is declared.
+     * Namespace start is after namespace declaration
      *
      * @param int $classStart
      *
@@ -168,19 +175,34 @@ final class ImportsModifier
             if ($this->tokens[$i]->isGivenKind(T_NAMESPACE)) {
                 $nextTokenIndex = $this->tokens->getNextTokenOfKind($i, [';', '{']);
                 if (null !== $nextTokenIndex) {
-                    $namespaceStart = $nextTokenIndex;
+                    $namespaceStart = $nextTokenIndex + 1;
                 }
 
-                break;
-            }
-
-            if ($this->tokens[$i]->isGivenKind(T_OPEN_TAG)) {
-                $namespaceStart = $i + 1;
                 break;
             }
         }
 
         return $namespaceStart;
+    }
+
+    /**
+     * PHP open tag is used as fallback start when no namespace declaration was found
+     *
+     * @param int $classStart
+     *
+     * @return int|null
+     */
+    private function getOpenTagStart(int $classStart)
+    {
+        $openTagStart = null;
+        for ($i = $classStart; $i >= 0; $i--) {
+            if ($this->tokens[$i]->isGivenKind(T_OPEN_TAG)) {
+                $openTagStart = $i + 1;
+                break;
+            }
+        }
+
+        return $openTagStart;
     }
 
     /**

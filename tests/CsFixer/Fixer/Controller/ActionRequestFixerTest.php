@@ -154,6 +154,34 @@ class TestController extends FrontendController
 }
 EOF;
 
+        $noUseInput = <<<'EOF'
+<?php
+
+namespace AppBundle\Controller;
+
+class TestController
+{
+    public function fooAction($foo, $bar)
+    {
+    }
+}
+EOF;
+
+        $noUseExpected = <<<'EOF'
+<?php
+
+namespace AppBundle\Controller;
+
+use Symfony\Component\HttpFoundation\Request;
+
+class TestController
+{
+    public function fooAction(Request $request, $foo, $bar)
+    {
+    }
+}
+EOF;
+
         $noNamespaceNoUseInput = <<<'EOF'
 <?php
 
@@ -267,6 +295,10 @@ EOF;
             [
                 $noNamespaceExpected,
                 $noNamespaceInput
+            ],
+            [
+                $noUseExpected,
+                $noUseInput
             ],
             [
                 $noNamespaceNoUseExpected,
