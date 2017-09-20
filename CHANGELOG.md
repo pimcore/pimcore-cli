@@ -1,6 +1,16 @@
 Changelog
 =========
 
+0.6.0
+-----
+
+Added controller fixers which are able to:
+
+* Add an `AppBundle\Controller` controller namespace 
+* Change the controller parent class to `FrontendController`
+* Add a `Request $request` argument to controller actions
+* Change calls from `$this->getParam()` to `$request->get()`
+
 0.5.0
 -----
 

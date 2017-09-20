@@ -13,6 +13,7 @@ The Pimcore CLI ships with a couple of scripts which ease the migration to Pimco
 | `pimcore5:views:rename`               | Migrates views to new naming conventions for PHP templating engine (changes extension from `.php` to `.html.php` and changes filenames from dashed-case to camelCase |
 | `pimcore5:views:update-db-references` | Updates DB references to view files (updates documents setting a custom template |
 | `pimcore5:views:fix`                  | Rewrites templates with common changes needed for Pimcore 5 templating (e.g. changes `setLayout()` to `extend()`) |
+| `pimcore5:controllers:fix`            | Rewrites controllers with common changes (e.g. add a `Request $request` parameter to actions |
 
 A typical migration scenario could look like the following. The  `migrate:views` and `fix-views` commands make a couple
 of assumptions regarding file naming which may not fit your needs. Please check what has been done and revert what you
@@ -35,8 +36,12 @@ $ pimcore.phar pimcore5:views:rename legacy/website/views/scripts app/Resources/
 # rename layouts
 $ pimcore.phar pimcore5:views:rename legacy/website/views/layouts app/Resources/views
 
-# fix views (make sure you check what has been changed!)
+# update views (make sure you check what has been changed!)
 $ pimcore.phar pimcore5:views:fix app/Resources/views
+
+# update controllers (make sure you check what has been changed!)
+# controller files need to be moved manually, but there is no name changing involved as with views
+$ pimcore.phar pimcore5:controllers:fix src/AppBundle/Controller
 
 # fix view db references (documents setting a custom template)
 $ pimcore.phar pimcore5:views:update-db-references
