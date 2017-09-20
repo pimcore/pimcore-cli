@@ -11,6 +11,7 @@ use PhpCsFixer\Tokenizer\Tokens;
 use PhpCsFixer\Tokenizer\TokensAnalyzer;
 use Pimcore\CsFixer\Fixer\Traits\FixerNameTrait;
 use Pimcore\CsFixer\Fixer\Traits\SupportsControllerTrait;
+use Pimcore\CsFixer\Tokenizer\Controller\ActionAnalyzer;
 use Pimcore\CsFixer\Tokenizer\ImportsModifier;
 
 final class ActionRequestFixer extends AbstractFixer
@@ -80,6 +81,7 @@ final class ActionRequestFixer extends AbstractFixer
     private function updateActions(Tokens $tokens, TokensAnalyzer $tokensAnalyzer, int $classStart, int $classEnd): bool
     {
         $argumentsAnalyzer = new ArgumentsAnalyzer();
+        $actionAnalyzer    = new ActionAnalyzer();
 
         $updated = false;
         for ($index = $classEnd; $index > $classStart; --$index) {
@@ -87,27 +89,12 @@ final class ActionRequestFixer extends AbstractFixer
                 continue;
             }
 
+            if (!$actionAnalyzer->isValidAction($tokens, $tokensAnalyzer, $index)) {
+                continue;
+            }
+
             $methodNameToken = $tokens->getNextMeaningfulToken($index);
             if (null === $methodNameToken) {
-                continue;
-            }
-
-            $methodName = $tokens[$methodNameToken];
-
-            // only update methods ending in Action
-            if (!$methodName->isGivenKind(T_STRING) || !preg_match('/Action$/', $methodName->getContent())) {
-                continue;
-            }
-
-            $attributes = $tokensAnalyzer->getMethodAttributes($index);
-
-            // only update public methods
-            if (!(null === $attributes['visibility'] || T_PUBLIC === $attributes['visibility'])) {
-                continue;
-            }
-
-            // do not touch abstract methods
-            if (true === $attributes['abstract']) {
                 continue;
             }
 

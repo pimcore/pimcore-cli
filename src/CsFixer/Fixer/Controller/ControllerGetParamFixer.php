@@ -10,6 +10,7 @@ use PhpCsFixer\Tokenizer\Tokens;
 use PhpCsFixer\Tokenizer\TokensAnalyzer;
 use Pimcore\CsFixer\Fixer\Traits\FixerNameTrait;
 use Pimcore\CsFixer\Fixer\Traits\SupportsControllerTrait;
+use Pimcore\CsFixer\Tokenizer\Controller\ActionAnalyzer;
 use Pimcore\CsFixer\Tokenizer\FunctionAnalyzer;
 
 final class ControllerGetParamFixer extends AbstractFixer
@@ -73,8 +74,14 @@ final class ControllerGetParamFixer extends AbstractFixer
 
     private function processClass(Tokens $tokens, TokensAnalyzer $tokensAnalyzer, int $classStart, int $classEnd)
     {
+        $actionAnalyzer = new ActionAnalyzer();
+
         for ($index = $classEnd; $index > $classStart; --$index) {
             if (!$tokens[$index]->isGivenKind(T_FUNCTION)) {
+                continue;
+            }
+
+            if (!$actionAnalyzer->isValidAction($tokens, $tokensAnalyzer, $index)) {
                 continue;
             }
 
@@ -83,30 +90,11 @@ final class ControllerGetParamFixer extends AbstractFixer
                 continue;
             }
 
-            $methodName = $tokens[$methodNameToken];
-
-            // only update methods ending in Action
-            if (!$methodName->isGivenKind(T_STRING) || !preg_match('/Action$/', $methodName->getContent())) {
-                continue;
-            }
-
-            $attributes = $tokensAnalyzer->getMethodAttributes($index);
-
-            // only update public methods
-            if (!(null === $attributes['visibility'] || T_PUBLIC === $attributes['visibility'])) {
-                continue;
-            }
-
-            // do not touch abstract methods
-            if (true === $attributes['abstract']) {
-                continue;
-            }
-
             $methodStart = $tokens->getNextTokenOfKind($methodNameToken, ['{']);
             $methodEnd   = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_CURLY_BRACE, $methodStart);
 
             if (null === $methodStart || null === $methodEnd) {
-                throw new \UnexpectedValueException(sprintf('Failed to find method end for method "%s"', $methodName->getContent()));
+                throw new \UnexpectedValueException(sprintf('Failed to find method end for method "%s"', $tokens[$methodNameToken]->getContent()));
             }
 
             $this->processAction($tokens, $methodStart, $methodEnd);
