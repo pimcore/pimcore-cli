@@ -4,6 +4,8 @@ Changelog
 0.6.0
 -----
 
+* Updated to PHP-CS-Fixer 2.6 and changed calls to work with immutable tokens
+
 Added controller fixers which are able to:
 
 * Add an `AppBundle\Controller` controller namespace 
