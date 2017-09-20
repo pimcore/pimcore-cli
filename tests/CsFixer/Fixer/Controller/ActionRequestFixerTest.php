@@ -20,47 +20,6 @@ class ActionRequestFixerTest extends AbstractControllerFixerTestCase
         $this->doTest($expected, $input);
     }
 
-    public function proddvideFixCases()
-    {
-        $argumentActionInput = <<<'EOF'
-<?php
-
-namespace AppBundle\Controller;
-
-use Pimcore\Controller\FrontendController;
-
-class TestController extends FrontendController
-{
-    public function fooAction($foo, $bar)
-    {
-    }
-}
-EOF;
-
-        $argumentActionExpected = <<<'EOF'
-<?php
-
-namespace AppBundle\Controller;
-
-use Pimcore\Controller\FrontendController
-use Symfony\Component\HttpFoundation\Request;
-
-class TestController extends FrontendController
-{
-    public function fooAction(Request $request, $foo, $bar)
-    {
-    }
-}
-EOF;
-
-        return [
-            [
-                $argumentActionExpected,
-                $argumentActionInput
-            ]
-        ];
-    }
-
     public function provideFixCases()
     {
         $emptyActionInput = <<<'EOF'
