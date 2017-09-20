@@ -25,11 +25,16 @@ use PhpCsFixer\Console\Output\ProcessOutput;
 use PhpCsFixer\Error\ErrorsManager;
 use PhpCsFixer\Report\ReportSummary;
 use PhpCsFixer\Runner\Runner;
+use Pimcore\Cli\Command\AbstractCommand;
 use Pimcore\CsFixer\Console\ConfigurationResolver;
-use Symfony\Component\Console\Command\Command;
+use Pimcore\CsFixer\Log\FixerLogger;
+use Pimcore\CsFixer\Log\FixerLoggerInterface;
+use Pimcore\CsFixer\Log\Record;
+use Psr\Log\LogLevel;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
+use Symfony\Component\Console\Logger\ConsoleLogger;
 use Symfony\Component\Console\Output\ConsoleOutputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\EventDispatcher\EventDispatcher;
@@ -40,7 +45,7 @@ use Symfony\Component\Stopwatch\Stopwatch;
  * Runs PHP-CS-Fixer with our custom ruleset to ease view migration. This command
  * is heavily inspired by the FixCommand from the PHP-CS-Fixer package.
  */
-abstract class AbstractCsFixerCommand extends Command
+abstract class AbstractCsFixerCommand extends AbstractCommand
 {
     // Exit status 1 is reserved for environment constraints not matched.
     const EXIT_STATUS_FLAG_HAS_INVALID_FILES = 4;
@@ -77,10 +82,16 @@ abstract class AbstractCsFixerCommand extends Command
      */
     private $config;
 
+    /**
+     * @var FixerLoggerInterface
+     */
+    private $logger;
+
     public function __construct()
     {
         parent::__construct();
 
+        $this->logger          = new FixerLogger();
         $this->config          = $this->buildConfig();
         $this->errorsManager   = new ErrorsManager();
         $this->eventDispatcher = new EventDispatcher();
@@ -222,6 +233,8 @@ abstract class AbstractCsFixerCommand extends Command
             }
         }
 
+        $this->printLogSummary();
+
         return $this->calculateExitStatus(
             $resolver->isDryRun(),
             count($changed) > 0,
@@ -230,9 +243,42 @@ abstract class AbstractCsFixerCommand extends Command
         );
     }
 
+    private function printLogSummary()
+    {
+        if (!$this->logger->hasRecords()) {
+            return;
+        }
+
+        $this->io->section('Log messages');
+
+        $consoleLogger = new ConsoleLogger($this->io, [
+            LogLevel::EMERGENCY => OutputInterface::VERBOSITY_NORMAL,
+            LogLevel::ALERT     => OutputInterface::VERBOSITY_NORMAL,
+            LogLevel::CRITICAL  => OutputInterface::VERBOSITY_NORMAL,
+            LogLevel::ERROR     => OutputInterface::VERBOSITY_NORMAL,
+            LogLevel::WARNING   => OutputInterface::VERBOSITY_NORMAL,
+            LogLevel::NOTICE    => OutputInterface::VERBOSITY_NORMAL,
+            LogLevel::INFO      => OutputInterface::VERBOSITY_NORMAL,
+            LogLevel::DEBUG     => OutputInterface::VERBOSITY_NORMAL,
+        ]);
+
+        $i = 1;
+        foreach ($this->logger->getRecords() as $fileName => $records) {
+            $this->io->writeln(sprintf('%d) %s', $i++, $fileName));
+            $this->io->newLine();
+
+            /** @var Record $record */
+            foreach ($records as $record) {
+                $record->log($consoleLogger);
+            }
+
+            $this->io->newLine();
+        }
+    }
+
     private function buildConfig(): ConfigInterface
     {
-        $fixers = $this->getCustomFixers();
+        $fixers = $this->getCustomFixers($this->logger);
 
         $rules = [];
         foreach ($fixers as $fixer) {
@@ -250,9 +296,11 @@ abstract class AbstractCsFixerCommand extends Command
     /**
      * Returns custom fixers which should be used for the running command
      *
+     * @param FixerLoggerInterface $logger
+     *
      * @return array
      */
-    abstract protected function getCustomFixers(): array;
+    abstract protected function getCustomFixers(FixerLoggerInterface $logger): array;
 
     /**
      * @param bool $isDryRun

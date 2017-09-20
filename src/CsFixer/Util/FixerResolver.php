@@ -17,21 +17,29 @@ declare(strict_types=1);
 
 namespace Pimcore\CsFixer\Util;
 
+use Pimcore\CsFixer\Log\FixerLoggerInterface;
+use Pimcore\CsFixer\Log\LoggingFixerInterface;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 
 final class FixerResolver
 {
     /**
+     * @param FixerLoggerInterface $logger
      * @param string|null $subNamespace
      *
      * @return array
      */
-    public static function getCustomFixers(string $subNamespace = null): array
+    public static function getCustomFixers(FixerLoggerInterface $logger, string $subNamespace = null): array
     {
         $fixers = [];
         foreach (self::getCustomFixerClasses($subNamespace) as $class) {
-            $fixers[] = new $class;
+            $fixer = new $class;
+            if ($fixer instanceof LoggingFixerInterface) {
+                $fixer->setLogger($logger);
+            }
+
+            $fixers[] = $fixer;
         }
 
         return $fixers;
