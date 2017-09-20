@@ -39,6 +39,6 @@ class FixControllersCommand extends AbstractCsFixerCommand
      */
     protected function getCustomFixers(FixerLoggerInterface $logger): array
     {
-        return FixerResolver::getCustomFixers($logger,'Controller');
+        return FixerResolver::getCustomFixers($logger, 'Controller');
     }
 }

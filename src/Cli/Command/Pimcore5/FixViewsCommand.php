@@ -39,6 +39,6 @@ class FixViewsCommand extends AbstractCsFixerCommand
      */
     protected function getCustomFixers(FixerLoggerInterface $logger): array
     {
-        return FixerResolver::getCustomFixers($logger,'View');
+        return FixerResolver::getCustomFixers($logger, 'View');
     }
 }
