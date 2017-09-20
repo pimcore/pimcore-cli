@@ -1,6 +1,16 @@
 Changelog
 =========
 
+0.8.0
+-----
+
+Add a `--collect-commands` option to the following commands which can be used to generate a list of commands
+which can be executed as script (e.g. in combination with `--dry-run` option).
+
+* `pimcore5:migrate:filesystem`
+* `pimcore5:migrate:areabrick`
+* `pimcore5:views:rename`
+
 0.7.0
 -----
 

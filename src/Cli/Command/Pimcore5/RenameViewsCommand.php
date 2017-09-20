@@ -20,6 +20,7 @@ namespace Pimcore\Cli\Command\Pimcore5;
 use Pimcore\Cli\Command\AbstractCommand;
 use Pimcore\Cli\Command\Pimcore5\Traits\RenameViewCommandTrait;
 use Pimcore\Cli\Filesystem\DryRunFilesystem;
+use Pimcore\Cli\Traits\CommandCollectorCommandTrait;
 use Pimcore\Cli\Traits\DryRunCommandTrait;
 use Pimcore\Cli\Util\FileUtils;
 use Pimcore\Cli\Util\TextUtils;
@@ -33,6 +34,7 @@ class RenameViewsCommand extends AbstractCommand
 {
     use RenameViewCommandTrait;
     use DryRunCommandTrait;
+    use CommandCollectorCommandTrait;
 
     protected function configure()
     {
@@ -51,6 +53,7 @@ class RenameViewsCommand extends AbstractCommand
                 InputOption::VALUE_NONE,
                 'Do not add typehint header'
             )
+            ->configureCollectCommandsOption()
             ->configureViewRenameOptions()
             ->configureDryRunOption();
     }
@@ -74,8 +77,13 @@ class RenameViewsCommand extends AbstractCommand
             ->in($sourceDir)
             ->name('*.php');
 
-        $fs = new DryRunFilesystem($this->io, $this->isDryRun());
+        $collector = $this->createCommandCollector();
+        $fs        = new DryRunFilesystem($this->io, $this->isDryRun(), false, $collector);
+
+        $createdDirs = [];
+
         $fs->mkdir($targetDir);
+        $createdDirs[] = $targetDir;
 
         $addTypehintHeader = !$input->getOption('no-type-header');
 
@@ -89,10 +97,15 @@ class RenameViewsCommand extends AbstractCommand
                 continue;
             }
 
+            $dirToCreate = dirname($targetPath);
+            if (!in_array($dirToCreate, $createdDirs)) {
+                $fs->mkdir($dirToCreate);
+                $createdDirs[] = $dirToCreate;
+            }
+
             if ($input->getOption('copy')) {
                 $fs->copy($file->getRealPath(), $targetPath);
             } else {
-                $fs->mkdir(dirname($targetPath));
                 $fs->rename($file->getRealPath(), $targetPath);
             }
 
@@ -122,6 +135,10 @@ class RenameViewsCommand extends AbstractCommand
             if ($this->io->isVerbose()) {
                 $this->io->writeln('');
             }
+        }
+
+        if (null !== $collector) {
+            $this->printCollectedCommands($collector);
         }
     }
 

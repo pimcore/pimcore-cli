@@ -23,6 +23,7 @@ use Pimcore\Cli\Console\Style\RequirementsFormatter;
 use Pimcore\Cli\Console\Style\VersionFormatter;
 use Pimcore\Cli\Filesystem\DryRunFilesystem;
 use Pimcore\Cli\Pimcore5\Pimcore5Requirements;
+use Pimcore\Cli\Traits\CommandCollectorCommandTrait;
 use Pimcore\Cli\Traits\DryRunCommandTrait;
 use Pimcore\Cli\Util\FileUtils;
 use Pimcore\Cli\Util\VersionReader;
@@ -37,6 +38,7 @@ use Symfony\Component\Finder\Finder;
 class MigrateFilesystemCommand extends AbstractCommand
 {
     use DryRunCommandTrait;
+    use CommandCollectorCommandTrait;
 
     /**
      * @var Filesystem
@@ -91,14 +93,18 @@ class MigrateFilesystemCommand extends AbstractCommand
                 'Do not check Pimcore 5 requirements (you can check them manually via pimcore5:check-requirements command)'
             );
 
-        $this->configureDryRunOption();
+        $this
+            ->configureCollectCommandsOption()
+            ->configureDryRunOption();
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = $this->io;
 
-        $fs = $this->fs = new DryRunFilesystem($io, $this->isDryRun());
+        $collector = $this->createCommandCollector();
+
+        $fs = $this->fs = new DryRunFilesystem($io, $this->isDryRun(), false, $collector);
         $fs->setForceVerbose(true);
 
         $path = $input->getArgument('path');
@@ -170,6 +176,10 @@ class MigrateFilesystemCommand extends AbstractCommand
 
         $io->success('All done! Please check if all your files were moved properly and remove the .migration directory');
         $io->success('Please update the composer.json with your custom entries (see migration-backup directory for your previous version) and run composer update');
+
+        if (null !== $collector) {
+            $this->printCollectedCommands($collector);
+        }
 
         return 0;
     }

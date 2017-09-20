@@ -20,6 +20,7 @@ namespace Pimcore\Cli\Command\Pimcore5;
 use Doctrine\Common\Util\Inflector;
 use Pimcore\Cli\Command\AbstractCommand;
 use Pimcore\Cli\Filesystem\DryRunFilesystem;
+use Pimcore\Cli\Traits\CommandCollectorCommandTrait;
 use Pimcore\Cli\Traits\DryRunCommandTrait;
 use Pimcore\Cli\Util\CodeGeneratorUtils;
 use Pimcore\Cli\Util\FileUtils;
@@ -37,6 +38,7 @@ use Zend\Code\Generator\MethodGenerator;
 class MigrateAreabrickCommand extends AbstractCommand
 {
     use DryRunCommandTrait;
+    use CommandCollectorCommandTrait;
 
     /**
      * @var Filesystem
@@ -99,15 +101,19 @@ class MigrateAreabrickCommand extends AbstractCommand
                 'global'
             );
 
-        $this->configureDryRunOption();
+        $this
+            ->configureCollectCommandsOption()
+            ->configureDryRunOption();
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $this->hasWarnings = false;
 
+        $collector = $this->createCommandCollector();
+
         $io = $this->io;
-        $fs = $this->fs = new DryRunFilesystem($io, $this->isDryRun());
+        $fs = $this->fs = new DryRunFilesystem($io, $this->isDryRun(), false, $collector);
 
         $xmlFile = $input->getArgument('xml-file');
         if (!$fs->exists($xmlFile) || !is_file($xmlFile)) {
@@ -172,6 +178,10 @@ class MigrateAreabrickCommand extends AbstractCommand
             $this->io->block('Completed with warnings (see above)', 'WARNING', 'fg=black;bg=yellow', ' ', true);
         } else {
             $this->io->success('All done!');
+        }
+
+        if (null !== $collector) {
+            $this->printCollectedCommands($collector);
         }
     }
 
