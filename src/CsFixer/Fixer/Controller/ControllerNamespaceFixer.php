@@ -52,7 +52,7 @@ final class ControllerNamespaceFixer extends AbstractFixer implements LoggingFix
             return;
         }
 
-        $this->logger->info($file, 'Adding namespace {namespace}', ['namespace' => 'AppBundle\\Controller']);
+        $this->getLogger()->info($file, 'Adding namespace {namespace}', ['namespace' => 'AppBundle\\Controller']);
 
         $namespace = [
             new Token([T_NAMESPACE, 'namespace']),

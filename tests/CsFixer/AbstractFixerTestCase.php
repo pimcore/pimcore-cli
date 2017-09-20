@@ -16,6 +16,7 @@ namespace Pimcore\Tests\CsFixer;
 
 use PhpCsFixer\FixerFactory;
 use PhpCsFixer\Tests\Test\AbstractFixerTestCase as BaseAbstractFixerTestCase;
+use Pimcore\CsFixer\Log\FixerLogger;
 use Pimcore\CsFixer\Util\FixerResolver;
 
 abstract class AbstractFixerTestCase extends BaseAbstractFixerTestCase
@@ -33,8 +34,10 @@ abstract class AbstractFixerTestCase extends BaseAbstractFixerTestCase
      */
     protected function createFixerFactory()
     {
+        $logger = new FixerLogger();
+
         $factory = FixerFactory::create();
-        $factory->registerCustomFixers(FixerResolver::getCustomFixers());
+        $factory->registerCustomFixers(FixerResolver::getCustomFixers($logger));
 
         return $factory;
     }

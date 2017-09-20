@@ -75,7 +75,7 @@ final class FixerLogger implements FixerLoggerInterface
         $this->records[$fileIdentifier][] = $recordValue;
     }
 
-    private function getFileIdentifier(\SplFileInfo $file): string
+    private function getFileIdentifier(\SplFileInfo $file)
     {
         return $file->getRealPath();
     }

@@ -17,6 +17,7 @@ declare(strict_types=1);
 
 namespace Pimcore\CsFixer\Fixer\Traits;
 
+use Pimcore\CsFixer\Log\FixerLogger;
 use Pimcore\CsFixer\Log\FixerLoggerInterface;
 
 trait LoggingFixerTrait
@@ -24,10 +25,19 @@ trait LoggingFixerTrait
     /**
      * @var FixerLoggerInterface
      */
-    protected $logger;
+    private $logger;
 
     public function setLogger(FixerLoggerInterface $logger)
     {
         $this->logger = $logger;
+    }
+
+    protected function getLogger(): FixerLoggerInterface
+    {
+        if (null === $this->logger) {
+            $this->logger = new FixerLogger();
+        }
+
+        return $this->logger;
     }
 }
