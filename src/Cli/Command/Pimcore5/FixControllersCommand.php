@@ -17,6 +17,7 @@ declare(strict_types=1);
 
 namespace Pimcore\Cli\Command\Pimcore5;
 
+use Pimcore\CsFixer\Log\FixerLoggerInterface;
 use Pimcore\CsFixer\Util\FixerResolver;
 
 class FixControllersCommand extends AbstractCsFixerCommand
@@ -36,8 +37,8 @@ class FixControllersCommand extends AbstractCsFixerCommand
     /**
      * @inheritDoc
      */
-    protected function getCustomFixers(): array
+    protected function getCustomFixers(FixerLoggerInterface $logger): array
     {
-        return FixerResolver::getCustomFixers('Controller');
+        return FixerResolver::getCustomFixers($logger,'Controller');
     }
 }

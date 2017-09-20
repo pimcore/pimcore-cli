@@ -8,13 +8,16 @@ use PhpCsFixer\FixerDefinition\FixerDefinition;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
 use Pimcore\CsFixer\Fixer\Traits\FixerNameTrait;
+use Pimcore\CsFixer\Fixer\Traits\LoggingFixerTrait;
 use Pimcore\CsFixer\Fixer\Traits\SupportsControllerTrait;
+use Pimcore\CsFixer\Log\LoggingFixerInterface;
 use Pimcore\CsFixer\Tokenizer\TokenInsertManipulator;
 
-final class ControllerNamespaceFixer extends AbstractFixer
+final class ControllerNamespaceFixer extends AbstractFixer implements LoggingFixerInterface
 {
     use FixerNameTrait;
     use SupportsControllerTrait;
+    use LoggingFixerTrait;
 
     /**
      * @inheritDoc
@@ -48,6 +51,8 @@ final class ControllerNamespaceFixer extends AbstractFixer
         if (null === $newNamespaceIndex) {
             return;
         }
+
+        $this->logger->info($file, 'Adding namespace {namespace}', ['namespace' => 'AppBundle\\Controller']);
 
         $namespace = [
             new Token([T_NAMESPACE, 'namespace']),
