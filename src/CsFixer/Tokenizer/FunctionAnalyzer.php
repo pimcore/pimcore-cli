@@ -26,10 +26,12 @@ final class FunctionAnalyzer
      *
      * @param Tokens $tokens
      * @param array $sequence
+     * @param int|null $startIndex
+     * @param int|null $endIndex
      *
      * @return array
      */
-    public function findFunctionCallCandidates(Tokens $tokens, array $sequence): array
+    public function findFunctionCallCandidates(Tokens $tokens, array $sequence, int $startIndex = null, int $endIndex = null): array
     {
         if (count($sequence) === 0) {
             throw new \InvalidArgumentException('Sequence can\'t be empty!');
@@ -40,11 +42,19 @@ final class FunctionAnalyzer
             throw new \InvalidArgumentException('Sequence must end in opening parenthesis!');
         }
 
+        if (null === $startIndex) {
+            $startIndex = 0;
+        }
+
+        if (null === $endIndex) {
+            $endIndex = count($tokens) - 1;
+        }
+
         $candidates = [];
 
         $currIndex = 0;
         while (null !== $currIndex) {
-            $match = $tokens->findSequence($sequence, $currIndex, $tokens->count() - 1);
+            $match = $tokens->findSequence($sequence, $currIndex, $endIndex);
 
             // stop looping if didn't find any new matches
             if (null === $match) {
@@ -59,7 +69,7 @@ final class FunctionAnalyzer
             $candidates[] = [$match, $openParenthesis, $closeParenthesis];
 
             $currIndex = $openParenthesis + 1;
-            if ($currIndex >= count($tokens) - 1) {
+            if ($currIndex >= $endIndex) {
                 break;
             }
         }
