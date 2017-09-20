@@ -89,6 +89,7 @@ final class ConfigurationResolver
      */
     private $options = [
         'allow-risky' => null,
+        'exclude' => [],
         'config' => null,
         'dry-run' => null,
         'format' => null,
@@ -234,10 +235,21 @@ final class ConfigurationResolver
     public function getFixers()
     {
         if (null === $this->fixers) {
-            $this->fixers = $this->createFixerFactory()
+            $fixers = $this->createFixerFactory()
                 ->useRuleSet($this->getRuleSet())
                 ->setWhitespacesConfig(new WhitespacesFixerConfig($this->config->getIndent(), $this->config->getLineEnding()))
                 ->getFixers();
+
+            if (!empty($excluded = $this->getExcludedFixers())) {
+                $fixers = array_filter(
+                    $fixers,
+                    function (FixerInterface $fixer) use ($excluded) {
+                        return !in_array($fixer->getName(), $excluded);
+                    }
+                );
+            }
+
+            $this->fixers = $fixers;
 
             if (false === $this->getRiskyAllowed()) {
                 $riskyFixers = array_map(
@@ -374,6 +386,15 @@ final class ConfigurationResolver
         }
 
         return $this->allowRisky;
+    }
+
+    public function getExcludedFixers(): array
+    {
+        if (!isset($this->options['exclude']) || empty($this->options['exclude'])) {
+            return [];
+        }
+
+        return $this->options['exclude'];
     }
 
     /**

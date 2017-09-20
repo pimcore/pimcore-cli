@@ -23,6 +23,8 @@ use PhpCsFixer\Console\Output\ErrorOutput;
 use PhpCsFixer\Console\Output\NullOutput;
 use PhpCsFixer\Console\Output\ProcessOutput;
 use PhpCsFixer\Error\ErrorsManager;
+use PhpCsFixer\Fixer\DefinedFixerInterface;
+use PhpCsFixer\Fixer\FixerInterface;
 use PhpCsFixer\Report\ReportSummary;
 use PhpCsFixer\Runner\Runner;
 use Pimcore\Cli\Command\AbstractCommand;
@@ -31,6 +33,7 @@ use Pimcore\CsFixer\Log\FixerLogger;
 use Pimcore\CsFixer\Log\FixerLoggerInterface;
 use Pimcore\CsFixer\Log\Record;
 use Psr\Log\LogLevel;
+use Symfony\Component\Console\Helper\Table;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -118,6 +121,18 @@ abstract class AbstractCsFixerCommand extends AbstractCommand
                     new InputOption('show-progress', '', InputOption::VALUE_REQUIRED, 'Type of progress indicator (none, run-in, or estimating).'),
                 ]
             );
+
+        $this->addOption(
+            'list-fixers', null,
+            InputOption::VALUE_NONE,
+            'Lists all fixers which would be applied'
+        );
+
+        $this->addOption(
+            'exclude-fixer', 'x',
+            InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY,
+            'Prevent a certain fixer from being executed'
+        );
     }
 
     /**
@@ -127,10 +142,22 @@ abstract class AbstractCsFixerCommand extends AbstractCommand
     {
         $verbosity = $output->getVerbosity();
 
+        $exclude = [];
+        if (!empty($excludeFixers = $input->getOption('exclude-fixer'))) {
+            $exclude = array_map(function ($exclude) {
+                if (!preg_match('@^Pimcore/@', $exclude)) {
+                    $exclude = 'Pimcore/' . $exclude;
+                }
+
+                return $exclude;
+            }, $excludeFixers);
+        }
+
         $resolver = new ConfigurationResolver(
             $this->config,
             [
                 'allow-risky'       => $input->getOption('allow-risky'),
+                'exclude'           => $exclude,
                 'dry-run'           => $input->getOption('dry-run'),
                 'path'              => $input->getArgument('path'),
                 'path-mode'         => $input->getOption('path-mode'),
@@ -144,6 +171,12 @@ abstract class AbstractCsFixerCommand extends AbstractCommand
             ],
             getcwd()
         );
+
+        if ($input->getOption('list-fixers')) {
+            $this->listFixers($resolver->getFixers());
+
+            return 0;
+        }
 
         $reporter = $resolver->getReporter();
 
@@ -241,6 +274,40 @@ abstract class AbstractCsFixerCommand extends AbstractCommand
             count($invalidErrors) > 0,
             count($exceptionErrors) > 0
         );
+    }
+
+    /**
+     * @param FixerInterface[] $fixers
+     */
+    private function listFixers(array $fixers)
+    {
+        $table = new Table($this->io);
+        $table->setHeaders([
+            'Name',
+            'Priority',
+            'Description'
+        ]);
+
+        foreach ($fixers as $fixer) {
+            $name = preg_replace('@^Pimcore/@', '', $fixer->getName());
+
+            $description = '';
+            if ($fixer instanceof DefinedFixerInterface) {
+                $description = $fixer->getDefinition()->getSummary();
+
+                if (!empty($fixer->getDefinition()->getDescription())) {
+                    $description .= "\n" . $fixer->getDefinition()->getDescription();
+                }
+            }
+
+            $table->addRow([
+                $name,
+                $fixer->getPriority(),
+                $description
+            ]);
+        }
+
+        $table->render();
     }
 
     private function printLogSummary()

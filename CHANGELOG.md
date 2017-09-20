@@ -1,6 +1,12 @@
 Changelog
 =========
 
+0.7.0
+-----
+
+Added possibility to exclude fixers by their name by passing the `--exclude-fixer` option. Fixer names can be listed with
+the `--list-fixers` option.
+
 0.6.0
 -----
 
