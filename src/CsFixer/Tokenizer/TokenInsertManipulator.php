@@ -20,7 +20,7 @@ namespace Pimcore\CsFixer\Tokenizer;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
 
-class TokenInsertManipulator
+final class TokenInsertManipulator
 {
     /**
      * @var Tokens
