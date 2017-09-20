@@ -17,19 +17,20 @@ declare(strict_types=1);
 
 namespace Pimcore\CsFixer\Util;
 
-use PhpCsFixer\Fixer\FixerInterface;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 
 final class FixerResolver
 {
     /**
-     * @return FixerInterface[]
+     * @param string|null $subNamespace
+     *
+     * @return array
      */
-    public static function getCustomFixers(): array
+    public static function getCustomFixers(string $subNamespace = null): array
     {
         $fixers = [];
-        foreach (self::getCustomFixerClasses() as $class) {
+        foreach (self::getCustomFixerClasses($subNamespace) as $class) {
             $fixers[] = new $class;
         }
 
@@ -37,19 +38,38 @@ final class FixerResolver
     }
 
     /**
+     * @param string|null $subNamespace
+     *
      * @return array
      */
-    public static function getCustomFixerClasses(): array
+    public static function getCustomFixerClasses(string $subNamespace = null): array
     {
         static $customFixers = null;
 
         if (null === $customFixers) {
             $customFixers = [];
+        }
+
+        $key = $subNamespace;
+        if (null === $key) {
+            $key = '_all';
+        }
+
+        if (!isset($customFixers[$key])) {
+            $customFixers[$key] = [];
+
+            $dir = __DIR__ . '/../Fixer';
+            $baseNamespace = 'Pimcore\\CsFixer\Fixer\\';
+
+            if (null !== $subNamespace) {
+                $dir = $dir . '/' . $subNamespace;
+                $baseNamespace .= str_replace('/', '\\', $subNamespace) . '\\';
+            }
 
             /** @var SplFileInfo $file */
-            foreach (Finder::create()->files()->in(__DIR__ . '/../Fixer') as $file) {
+            foreach (Finder::create()->files()->in($dir) as $file) {
                 $relativeNamespace = $file->getRelativePath();
-                $fixerClass        = 'Pimcore\\CsFixer\Fixer\\' . ($relativeNamespace ? $relativeNamespace . '\\' : '') . $file->getBasename('.php');
+                $fixerClass        = $baseNamespace . ($relativeNamespace ? $relativeNamespace . '\\' : '') . $file->getBasename('.php');
 
                 if ('Fixer' === substr($fixerClass, -5)) {
                     $reflector = new \ReflectionClass($fixerClass);
@@ -57,11 +77,11 @@ final class FixerResolver
                         continue;
                     }
 
-                    $customFixers[] = $fixerClass;
+                    $customFixers[$key][] = $fixerClass;
                 }
             }
         }
 
-        return $customFixers;
+        return $customFixers[$key];
     }
 }

@@ -17,6 +17,7 @@ namespace Pimcore\CsFixer\Fixer;
 use PhpCsFixer\AbstractFunctionReferenceFixer as BaseAbstractFunctionReferenceFixer;
 use PhpCsFixer\Tokenizer\Token;
 use PhpCsFixer\Tokenizer\Tokens;
+use Pimcore\CsFixer\Tokenizer\FunctionAnalyzer;
 
 abstract class AbstractFunctionReferenceFixer extends BaseAbstractFunctionReferenceFixer
 {
@@ -27,81 +28,28 @@ abstract class AbstractFunctionReferenceFixer extends BaseAbstractFunctionRefere
      * @param array $sequence
      *
      * @return array
+     *
+     * @deprecated use FunctionAnalyzer instead
      */
     protected function findFunctionCallCandidates(Tokens $tokens, array $sequence)
     {
-        if (count($sequence) === 0) {
-            throw new \InvalidArgumentException('Sequence can\'t be empty!');
-        }
-
-        // add opening parenthesis if missing
-        if ($sequence[count($sequence) - 1] !== '(') {
-            throw new \InvalidArgumentException('Sequence must end in opening parenthesis!');
-        }
-
-        $candidates = [];
-
-        $currIndex = 0;
-        while (null !== $currIndex) {
-            $match = $tokens->findSequence($sequence, $currIndex, $tokens->count() - 1);
-
-            // stop looping if didn't find any new matches
-            if (null === $match) {
-                break;
-            }
-
-            $indexes         = array_keys($match);
-            $openParenthesis = array_pop($indexes);
-
-            $closeParenthesis = $tokens->findBlockEnd(Tokens::BLOCK_TYPE_PARENTHESIS_BRACE, $openParenthesis);
-
-            $candidates[] = [$match, $openParenthesis, $closeParenthesis];
-
-            $currIndex = $openParenthesis + 1;
-            if ($currIndex >= count($tokens) - 1) {
-                break;
-            }
-        }
-
-        return array_reverse($candidates);
+        return (new FunctionAnalyzer())->findFunctionCallCandidates($tokens, $sequence);
     }
 
     /**
      * Extracts tokens for a given argument
      *
      * @param Tokens $tokens
-     * @param array $arguments      The result of getArguments()
-     * @param int $argumentIndex    The index of the argument
+     * @param array $arguments   The result of getArguments()
+     * @param int $argumentIndex The index of the argument
      * @param bool $keepIndex
      *
      * @return array|Token[]
+     *
+     * @deprecated use FunctionAnalyzer instead
      */
     protected function extractArgumentTokens(Tokens $tokens, array $arguments, int $argumentIndex, bool $keepIndex = false): array
     {
-        $indexes = array_keys($arguments);
-
-        if (!isset($indexes[$argumentIndex])) {
-            throw new \InvalidArgumentException(sprintf('Argument at index %d does not exist', $argumentIndex));
-        }
-
-        // arguments is an array indexed by start -> end
-        $startIndex = $indexes[$argumentIndex];
-        $endIndex   = $arguments[$startIndex];
-
-        $argumentTokens = [];
-        for ($i = $startIndex; $i <= $endIndex; $i++) {
-            // ignore leading whitespace tokens
-            if (empty($argumentTokens) && $tokens[$i]->isGivenKind(T_WHITESPACE)) {
-                continue;
-            }
-
-            if ($keepIndex) {
-                $argumentTokens[$i] = $tokens[$i];
-            } else {
-                $argumentTokens[] = $tokens[$i];
-            }
-        }
-
-        return $argumentTokens;
+        return (new FunctionAnalyzer())->extractArgumentTokens($tokens, $arguments, $argumentIndex, $keepIndex);
     }
 }
