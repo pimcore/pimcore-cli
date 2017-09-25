@@ -88,6 +88,20 @@ class TestController
 }
 EOF;
 
+        $insideInitMethodIgnored = <<<'EOF'
+<?php
+
+namespace AppBundle\Controller;
+
+class TestController
+{
+    public function init()
+    {
+        $foo = $this->getParam('foo');
+    }
+}
+EOF;
+
         $outsideClassScopeIgnored = <<<'EOF'
 <?php
 
@@ -105,6 +119,10 @@ EOF;
             ],
             [
                 $insideOtherMethodIgnored,
+                null
+            ],
+            [
+                $insideInitMethodIgnored,
                 null
             ],
             [
