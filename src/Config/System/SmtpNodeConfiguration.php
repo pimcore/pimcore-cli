@@ -37,7 +37,7 @@ class SmtpNodeConfiguration implements ConfigurationInterface
                 return is_array($v) && array_key_exists('name', $v);
             })
             ->then(function ($v) {
-                @trigger_error('The SMTP configuration "name" does is not used anymore', E_USER_DEPRECATED);
+                @trigger_error('The SMTP configuration "name" is not used anymore', E_USER_DEPRECATED);
                 unset($v['name']);
 
                 return $v;

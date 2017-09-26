@@ -40,6 +40,7 @@ $application->addCommands([
     new CompletionCommand(),
     new Command\VersionCommand(),
     new Command\SelfUpdateCommand(),
+    new Command\Config\DebugModeCommand(),
     new Command\Pimcore5\CheckRequirementsCommand(),
     new Command\Pimcore5\MigrateFilesystemCommand(),
     new Command\Pimcore5\MigrateAreabrickCommand(),

@@ -169,7 +169,8 @@ class MigrateFilesystemCommand extends AbstractCommand
                 ->createNewDirectories()
                 ->moveFilesIntoPlace()
                 ->moveLegacyFiles()
-                ->fixConfig();
+                ->fixConfig()
+                ->enableDebugMode();
         } catch (\Exception $e) {
             return $this->handleException($e, 5);
         }
@@ -365,15 +366,33 @@ class MigrateFilesystemCommand extends AbstractCommand
             return $this;
         }
 
-        $arguments = [
+        return $this->runCommand('pimcore5:config:fix', [
             'config-file' => $file
-        ];
+        ]);
+    }
 
+    private function enableDebugMode(): self
+    {
+        $dir = $this->path('var', 'config');
+
+        if (!file_exists($dir) && is_dir($dir)) {
+            $this->io->comment('Not setting debug mode as var/config directory was not found');
+
+            return $this;
+        }
+
+        return $this->runCommand('config:debug-mode', [
+            'config-dir' => $dir
+        ]);
+    }
+
+    private function runCommand(string $command, array $arguments): self
+    {
         if ($this->isDryRun()) {
             $arguments['--dry-run'] = true;
         }
 
-        $command = $this->getApplication()->find('pimcore5:config:fix');
+        $command = $this->getApplication()->find('config:debug-mode');
         $command->run(
             new ArrayInput($arguments),
             $this->io->getOutput()
