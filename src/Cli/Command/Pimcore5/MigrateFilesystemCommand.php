@@ -73,6 +73,7 @@ class MigrateFilesystemCommand extends AbstractCommand
     private $filesToUse = [
         'app', 'bin', 'pimcore', 'web',
         'composer.json',
+        'update-scripts/pimcore-4-to-5.php'
     ];
 
     protected function configure()
