@@ -400,7 +400,7 @@ class MigrateFilesystemCommand extends AbstractCommand
             $arguments['--dry-run'] = true;
         }
 
-        $command = $this->getApplication()->find('config:debug-mode');
+        $command = $this->getApplication()->find($command);
         $command->run(
             new ArrayInput($arguments),
             $this->io->getOutput()
