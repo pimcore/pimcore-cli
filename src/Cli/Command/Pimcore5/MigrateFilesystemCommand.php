@@ -425,7 +425,7 @@ class MigrateFilesystemCommand extends AbstractCommand
     }
 
     /**
-     * Tests if version prerequisites match (Pimcore >= 4.5.0, < 5)
+     * Tests if version prerequisites match (Pimcore >= 4.6.0, < 5)
      *
      * @param VersionReader $versionReader
      */
@@ -437,8 +437,8 @@ class MigrateFilesystemCommand extends AbstractCommand
             throw new \RuntimeException(sprintf('Installation is already is already version %s...aborting', $version));
         }
 
-        if (version_compare($version, '4.5', '<')) {
-            throw new \RuntimeException(sprintf('Current version: %s. Please update to version 4.5.0 before upgrading to version 5', $version));
+        if (version_compare($version, '4.6', '<')) {
+            throw new \RuntimeException(sprintf('Current version: %s. Please update to version 4.6 before upgrading to version 5', $version));
         }
 
         $this->io->success('Pimcore version prerequisites match');
