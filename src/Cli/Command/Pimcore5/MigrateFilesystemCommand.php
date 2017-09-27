@@ -235,6 +235,13 @@ class MigrateFilesystemCommand extends AbstractCommand
             $target = $this->path($file);
 
             if ($this->fs->exists($source)) {
+                if (false !== strpos($file, '/')) {
+                    $targetDir = dirname($target);
+                    if (!$this->fs->exists($targetDir)) {
+                        $this->fs->mkdir($targetDir);
+                    }
+                }
+
                 $this->fs->rename($source, $target);
             }
         }
