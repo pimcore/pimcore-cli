@@ -30,6 +30,10 @@ $ pimcore.phar pimcore5:migrate:filesystem . ../pimcore-unstable.zip
 # there is no need to call it after a filesystem migration as it is implicitely called
 $ pimcore.phar pimcore5:config:fix var/config/system.php
 
+# update controllers (make sure you check what has been changed!)
+# controller files need to be moved manually, but there is no name changing involved as with views
+$ pimcore.phar pimcore5:controllers:fix src/AppBundle/Controller
+
 # rename view scripts (pass -m option to move files instead of copying them)
 $ pimcore.phar pimcore5:views:rename legacy/website/views/scripts app/Resources/views
 
@@ -38,10 +42,6 @@ $ pimcore.phar pimcore5:views:rename legacy/website/views/layouts app/Resources/
 
 # update views (make sure you check what has been changed!)
 $ pimcore.phar pimcore5:views:fix app/Resources/views
-
-# update controllers (make sure you check what has been changed!)
-# controller files need to be moved manually, but there is no name changing involved as with views
-$ pimcore.phar pimcore5:controllers:fix src/AppBundle/Controller
 
 # fix view db references (documents setting a custom template)
 $ pimcore.phar pimcore5:views:update-db-references
