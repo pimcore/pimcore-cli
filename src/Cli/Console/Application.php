@@ -127,4 +127,32 @@ class Application extends BaseApplication
 
         return $process;
     }
+
+    /**
+     * Resolves file path on filesystem or inside PHAR
+     *
+     * @param string $path
+     *
+     * @return string
+     */
+    public function getFilePath($path)
+    {
+        if ($this->isPhar()) {
+            $phar = new \Phar(\Phar::running());
+
+            if (!isset($phar[$path])) {
+                throw new \InvalidArgumentException(sprintf('Path "%s" does not exist inside PHAR file', $path));
+            }
+
+            return $phar[$path]->getPathName();
+        } else {
+            $realPath = realpath(__DIR__ . '/../../../' . ltrim($path, '/'));
+
+            if (!$realPath || !file_exists($realPath)) {
+                throw new \InvalidArgumentException(sprintf('Path "%s" does not exist on filesystem', $path));
+            }
+
+            return $realPath;
+        }
+    }
 }

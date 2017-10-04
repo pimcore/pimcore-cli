@@ -18,6 +18,7 @@ declare(strict_types=1);
 namespace Pimcore\Cli\Command\Pimcore5;
 
 use Pimcore\Cli\Command\AbstractCommand;
+use Pimcore\Cli\Console\Application;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -64,8 +65,12 @@ EOF
 
     private function getFileContents()
     {
-        // TODO fix in PHAR context
-        return file_get_contents(__DIR__ . '/../../../../doc/pimcore_5_migration.md');
+        /** @var Application $application */
+        $application = $this->getApplication();
+
+        $path = $application->getFilePath('doc/pimcore_5_migration.md');
+
+        return file_get_contents($path);
     }
 
     private function getCodeContent()
