@@ -20,7 +20,7 @@ namespace Pimcore\Cli\Command\Pimcore5;
 use Pimcore\CsFixer\Log\FixerLoggerInterface;
 use Pimcore\CsFixer\Util\FixerResolver;
 
-class FixControllersCommand extends AbstractCsFixerCommand
+class ProcessControllersCommand extends AbstractCsFixerCommand
 {
     /**
      * @inheritDoc
@@ -28,7 +28,8 @@ class FixControllersCommand extends AbstractCsFixerCommand
     protected function configure()
     {
         $this
-            ->setName('pimcore5:controllers:fix')
+            ->setName('pimcore5:controllers:process')
+            ->setAliases(['pimcore5:controllers:fix'])
             ->setDescription('Changes common migration patterns in controllers');
 
         parent::configure();

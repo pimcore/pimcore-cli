@@ -20,7 +20,7 @@ namespace Pimcore\Cli\Command\Pimcore5;
 use Pimcore\CsFixer\Log\FixerLoggerInterface;
 use Pimcore\CsFixer\Util\FixerResolver;
 
-class FixViewsCommand extends AbstractCsFixerCommand
+class ProcessViewsCommand extends AbstractCsFixerCommand
 {
     /**
      * @inheritDoc
@@ -28,7 +28,8 @@ class FixViewsCommand extends AbstractCsFixerCommand
     protected function configure()
     {
         $this
-            ->setName('pimcore5:views:fix')
+            ->setName('pimcore5:views:process')
+            ->setAliases(['pimcore5:views:fix'])
             ->setDescription('Changes common migration patterns in view files (e.g. strips leading slashes in template() calls)');
 
         parent::configure();
