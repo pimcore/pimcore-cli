@@ -22,8 +22,6 @@ use Pimcore\Cli\Command\Pimcore5\Traits\RenameViewCommandTrait;
 use Pimcore\Cli\Filesystem\DryRunFilesystem;
 use Pimcore\Cli\Traits\CommandCollectorCommandTrait;
 use Pimcore\Cli\Traits\DryRunCommandTrait;
-use Pimcore\Cli\Util\FileUtils;
-use Pimcore\Cli\Util\TextUtils;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -47,11 +45,6 @@ class RenameViewsCommand extends AbstractCommand
                 'copy', 'c',
                 InputOption::VALUE_NONE,
                 'Copy files instead of moving them'
-            )
-            ->addOption(
-                'no-type-header', 'T',
-                InputOption::VALUE_NONE,
-                'Do not add typehint header'
             )
             ->configureCollectCommandsOption()
             ->configureViewRenameOptions()
@@ -85,8 +78,6 @@ class RenameViewsCommand extends AbstractCommand
         $fs->mkdir($targetDir);
         $createdDirs[] = $targetDir;
 
-        $addTypehintHeader = !$input->getOption('no-type-header');
-
         foreach ($finder as $file) {
             $relativePath = str_replace($sourceDir . DIRECTORY_SEPARATOR, '', $file->getRealPath());
             $updatedPath  = $this->processPath($input, $relativePath);
@@ -109,85 +100,13 @@ class RenameViewsCommand extends AbstractCommand
                 $fs->rename($file->getRealPath(), $targetPath);
             }
 
-            if (!$addTypehintHeader) {
-                continue;
-            }
-
-            if ($this->isDryRun()) {
-                if ($addTypehintHeader) {
-                    $this->io->writeln($this->dryRunMessage('Would add typehint headers'));
-                }
-            } else {
-                $content        = FileUtils::getFileContents($targetPath);
-                $updatedContent = $content;
-
-                if ($addTypehintHeader) {
-                    $updatedContent = $this->addTypehintHeader($updatedContent);
-                }
-
-                if ($updatedContent !== $content) {
-                    if (false === @file_put_contents($targetPath, $updatedContent)) {
-                        throw new \RuntimeException(sprintf('Failed to write file "%s".', $targetPath));
-                    }
-                }
-            }
-
             if ($this->io->isVerbose()) {
-                $this->io->writeln('');
+                $this->io->newLine();
             }
         }
 
         if (null !== $collector) {
             $this->printCollectedCommands($collector);
         }
-    }
-
-    /**
-     * Add typehint header if it is not found
-     *
-     * TODO move this to the fix command
-     *
-     * @param string $content
-     *
-     * @return string
-     */
-    private function addTypehintHeader(string $content): string
-    {
-        $header = <<<'EOF'
-<?php
-/**
- * @var \Pimcore\Templating\PhpEngine $this
- * @var \Pimcore\Templating\PhpEngine $view
- * @var \Pimcore\Templating\GlobalVariables $app
- */
-?>
-EOF;
-
-        // trim every line and remove empty ones
-        $filter = function (array $input): array {
-            $input = array_map(function ($item) {
-                return trim($item);
-            }, $input);
-
-            $input = array_filter($input, function ($item) {
-                return !empty($item);
-            });
-
-            return array_values($input);
-        };
-
-        // build compare arrays
-        $checkHeader  = explode("\n", TextUtils::normalizeLineEndings($header));
-        $checkContent = explode("\n", TextUtils::normalizeLineEndings($content));
-        array_splice($checkContent, count($checkHeader));
-
-        $checkHeader  = $filter($checkHeader);
-        $checkContent = $filter($checkContent);
-
-        if ($checkContent !== $checkHeader) {
-            $content = $header . "\n\n" . $content;
-        }
-
-        return $content;
     }
 }
