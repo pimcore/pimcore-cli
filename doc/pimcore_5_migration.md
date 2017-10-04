@@ -27,6 +27,9 @@ To introspect what is done by the commands you can use the following options:
   If the option is passed, a list of filesystem operations will be printed with the selected format. `git` will output the
   commands as git commands if applicable (e.g. a `mv` would be printed as `git mv`). 
 
+<!-- please do not remove the spacer below as it is used from the help:pimcore5:migration-cheatsheet command -->
+---
+
 ```
 # assuming pimcore.phar is on your $PATH
 $ cd <path-to-installation>
