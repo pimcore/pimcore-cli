@@ -5,7 +5,7 @@
   "require": {
     "doctrine/common": "^2.7",
     "doctrine/dbal": "^2.5",
-    "friendsofphp/php-cs-fixer": "^2.6",
+    "friendsofphp/php-cs-fixer": "2.6.*",
     "padraic/phar-updater": "^1.0",
     "raulfraile/distill": "^0.9.10",
     "riimu/kit-phpencoder": "^2.1",
