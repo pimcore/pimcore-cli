@@ -202,10 +202,14 @@ class MigrateAreabrickCommand extends AbstractCommand
 
         $className = $this->toClassName($info['id']);
         if ($newBrickId = $this->toBrickId($className) !== $info['id']) {
-            $this->io->note(sprintf('
-                The generated brick ID will change from %s to %s. Please register the brick manually on the container (see documentation) to keep using %1$s',
-                    $info['id'], $newBrickId)
-            );
+            $this->io->note(sprintf(
+                'The generated brick ID will change from "%s" to "%s". Please register the brick manually on the container to keep using "%1$s".',
+                $info['id'], $newBrickId
+            ));
+
+            // match note format manually, but avoid breaking the URL
+            $this->io->writeln("<fg=yellow> !        See documentation for details:\n !        https://pimcore.com/docs/5.0.x/Development_Documentation/Documents/Editables/Areablock/Bricks.html#page_Brick-registration</>");
+            $this->io->newLine();
 
             $this->hasWarnings = true;
         }
