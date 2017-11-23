@@ -28,7 +28,7 @@ before_install:
     - set | grep ^TASK | sort
 
 install:
-    - travis_retry composer update $DEFAULT_COMPOSER_FLAGS $COMPOSER_FLAGS
+    - travis_retry composer install $DEFAULT_COMPOSER_FLAGS $COMPOSER_FLAGS
     - composer info -D | sort
 
 script:
@@ -44,7 +44,7 @@ before_deploy:
     - composer config platform.php 2> /dev/null || composer config platform.php 7.0.0
 
     # update deps to highest possible for lowest supported PHP version
-    - composer update $DEFAULT_COMPOSER_FLAGS --no-dev --prefer-stable
+    - composer install $DEFAULT_COMPOSER_FLAGS --no-dev --prefer-stable
     - composer info -D | sort
 
     # build phar file
