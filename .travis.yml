@@ -44,7 +44,7 @@ before_deploy:
     - composer config platform.php 2> /dev/null || composer config platform.php 7.0.0
 
     # update deps to highest possible for lowest supported PHP version
-    - composer install $DEFAULT_COMPOSER_FLAGS --no-dev --prefer-stable
+    - composer install $DEFAULT_COMPOSER_FLAGS --no-dev
     - composer info -D | sort
 
     # build phar file
