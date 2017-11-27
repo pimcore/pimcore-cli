@@ -9,7 +9,7 @@ The Pimcore CLI ships with commands which ease the migration to Pimcore 5.
 | `pimcore5:check-requirements`         | Checks if your environment matches the requirements for Pimcore 5. |
 | `pimcore5:migrate:filesystem`         | Migrates your filesystem to Pimcore 5. Unpacks ZIP and moves stuff into place. |
 | `pimcore5:config:fix`                 | Updates `system.php` to match Pimcore 5 requirements. |
-| `pimcore5:controllers:process`        | Rewrites controllers with common changes (e.g. adds a `Request $request` parameter to actions). |
+| `pimcore5:controllers:process`        | Rewrites controllers with common changes (e.g. adds a `Request $request` parameter to actions). Path to the controllers folder must be passed. |
 | `pimcore5:views:rename`               | Migrates views to new naming conventions for PHP templating engine (changes extension from `.php` to `.html.php` and changes filenames from dashed-case to camelCase). |
 | `pimcore5:views:update-db-references` | Updates DB references to view files (updates documents setting a custom template). |
 | `pimcore5:views:process`              | Rewrites templates with common changes needed for Pimcore 5 templating (e.g. changes `setLayout()` to `extend()`). |
