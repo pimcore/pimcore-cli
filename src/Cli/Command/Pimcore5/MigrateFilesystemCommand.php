@@ -323,7 +323,7 @@ class MigrateFilesystemCommand extends AbstractCommand
             }
 
             foreach ($finder as $file) {
-                $sourceFile = $file->getRealPath();
+                $sourceFile = $file->getPathname();
                 $targetFile = FileUtils::buildPath($target, $file->getFilename());
 
                 $fs->rename($sourceFile, $targetFile, true);
