@@ -108,13 +108,19 @@ class SelfUpdateCommand extends AbstractCommand
 
     private function buildUpdater(): Updater
     {
-        $updater = new Updater(null, false, Updater::STRATEGY_GITHUB);
+        $updater        = new Updater(null, false, Updater::STRATEGY_GITHUB);
+        $currentVersion = $this->getApplication()->getVersion();
+
+        $this->io->isVerbose() && $this->io->writeln(sprintf(
+            'Current version is <comment>%s</comment>',
+            $currentVersion
+        ));
 
         /** @var GithubStrategy $strategy */
         $strategy = $updater->getStrategy();
         $strategy->setPackageName('pimcore/pimcore-cli');
         $strategy->setPharName('pimcore.phar');
-        $strategy->setCurrentLocalVersion($this->getApplication()->getVersion());
+        $strategy->setCurrentLocalVersion($currentVersion);
 
         return $updater;
     }

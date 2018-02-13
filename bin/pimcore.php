@@ -39,7 +39,7 @@ $application = new Application('Pimcore CLI Tools');
 $application->addCommands([
     new CompletionCommand(),
     new Command\VersionCommand(),
-    // new Command\SelfUpdateCommand(),
+    new Command\SelfUpdateCommand(),
     new Command\Config\DebugModeCommand(),
     new Command\Pimcore5\MigrationCheatsheetCommand(),
     new Command\Pimcore5\CheckRequirementsCommand(),
