@@ -3,6 +3,7 @@
   "description": "Pimcore CLI Tools",
   "license": "GPL-3.0",
   "require": {
+    "composer/semver": "^1.4",
     "doctrine/common": "^2.7",
     "doctrine/dbal": "^2.5",
     "friendsofphp/php-cs-fixer": "2.6.*",

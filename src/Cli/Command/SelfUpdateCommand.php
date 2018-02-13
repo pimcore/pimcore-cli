@@ -18,7 +18,7 @@ declare(strict_types=1);
 namespace Pimcore\Cli\Command;
 
 use Humbug\SelfUpdate\Strategy\GithubStrategy;
-use Humbug\SelfUpdate\Updater;
+use Pimcore\Cli\SelfUpdate\Updater;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;

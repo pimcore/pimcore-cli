@@ -62,6 +62,10 @@ class Application extends BaseApplication
             }
         }
 
+        if (!empty($packageVersion)) {
+            $packageVersion = trim($packageVersion);
+        }
+
         return $packageVersion;
     }
 
