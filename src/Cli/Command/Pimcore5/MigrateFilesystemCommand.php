@@ -226,7 +226,7 @@ class MigrateFilesystemCommand extends AbstractCommand
         }
 
         foreach ($this->filesToUse as $file) {
-            $source = FileUtils::buildPath($this->tmpDir, "skeleton-master", $file);
+            $source = FileUtils::buildPath($this->tmpDir, 'skeleton-master', $file);
             $target = $this->path($file);
 
             if ($this->fs->exists($source)) {
