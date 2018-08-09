@@ -7,7 +7,7 @@ The Pimcore CLI ships with commands which ease the migration to Pimcore 5.
 | Command                               | Description |
 |---------------------------------------|-------------|
 | `pimcore5:check-requirements`         | Checks if your environment matches the requirements for Pimcore 5. |
-| `pimcore5:migrate:filesystem`         | Migrates your filesystem to Pimcore 5. Unpacks ZIP and moves stuff into place. |
+| `pimcore5:migrate:filesystem`         | Migrates your filesystem to Pimcore 5. Downloads & unpacks ZIP of [Skeleton](https://github.com/pimcore/skeleton) and moves stuff into place. |
 | `pimcore5:config:fix`                 | Updates `system.php` to match Pimcore 5 requirements. |
 | `pimcore5:controllers:process`        | Rewrites controllers with common changes (e.g. adds a `Request $request` parameter to actions). Path to the controllers folder must be passed. |
 | `pimcore5:views:rename`               | Migrates views to new naming conventions for PHP templating engine (changes extension from `.php` to `.html.php` and changes filenames from dashed-case to camelCase). |
@@ -35,7 +35,7 @@ To introspect what is done by the commands you can use the following options:
 $ cd <path-to-installation>
 
 # migrate filesystem
-$ pimcore.phar pimcore5:migrate:filesystem . ../pimcore-unstable.zip
+$ pimcore.phar pimcore5:migrate:filesystem . 
 
 # the config:fix command could update the system.php to match pimcore 5 requirements but
 # there is no need to call it after a filesystem migration as it is implicitely called
