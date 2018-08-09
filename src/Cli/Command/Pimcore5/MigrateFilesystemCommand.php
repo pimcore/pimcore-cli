@@ -71,9 +71,8 @@ class MigrateFilesystemCommand extends AbstractCommand
      * @var array
      */
     private $filesToUse = [
-        'app', 'bin', 'pimcore', 'web',
+        'app', 'bin', 'web',
         'composer.json',
-        'update-scripts/pimcore-4-to-5.php'
     ];
 
     protected function configure()
@@ -84,7 +83,6 @@ class MigrateFilesystemCommand extends AbstractCommand
 
         $this
             ->addArgument('path', InputArgument::REQUIRED, 'Path to Pimcore 4 installation')
-            ->addArgument('zipFile', InputArgument::REQUIRED, 'Path to Pimcore 5 zip file')
             ->addOption(
                 'no-check-version', null, InputOption::VALUE_NONE,
                 'Do not check version prerequisites'
@@ -116,13 +114,6 @@ class MigrateFilesystemCommand extends AbstractCommand
         }
 
         $this->path = $path = rtrim($fs->makePathRelative(realpath($path), getcwd()), DIRECTORY_SEPARATOR);
-
-        $zipFile = $input->getArgument('zipFile');
-        if (!$fs->exists($zipFile)) {
-            $io->error(sprintf('Given zip file %s does not exist', $zipFile));
-
-            return 1;
-        }
 
         $title = sprintf('Migrating installation %s', $path);
         if ($this->isDryRun()) {
@@ -166,7 +157,7 @@ class MigrateFilesystemCommand extends AbstractCommand
         try {
             $this
                 ->backupFiles()
-                ->extractZip($zipFile)
+                ->extractZip()
                 ->createNewDirectories()
                 ->moveFilesIntoPlace()
                 ->moveLegacyFiles()
@@ -215,8 +206,12 @@ class MigrateFilesystemCommand extends AbstractCommand
      *
      * @return MigrateFilesystemCommand
      */
-    private function extractZip(string $zipFile): self
+    private function extractZip(): self
     {
+        $zipContent = file_get_contents('https://github.com/pimcore/skeleton/archive/master.zip');
+        $zipFile = $this->path('pimcore-skeleton.zip');
+        file_put_contents($zipFile, $zipContent);
+
         if (!$this->fs->exists($this->tmpDir)) {
             $this->fs->mkdir($this->tmpDir);
         }
@@ -245,6 +240,8 @@ class MigrateFilesystemCommand extends AbstractCommand
                 $this->fs->rename($source, $target);
             }
         }
+
+        unlink($zipFile);
 
         return $this;
     }

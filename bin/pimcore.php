@@ -17,11 +17,11 @@ use Pimcore\Cli\Command;
 use Pimcore\Cli\Console\Application;
 use Stecman\Component\Symfony\Console\BashCompletion\CompletionCommand;
 
-// only run on PHP >= 7
-$requiredVersion = '7.0';
+// only run on PHP >= 7.1
+$requiredVersion = '7.1';
 if (version_compare(PHP_VERSION, $requiredVersion, '<')) {
     file_put_contents('php://stderr', sprintf(
-        "Pimcore CLI Tools require PHP 7.0 version or higher. Your current PHP version is: %s\n",
+        "Pimcore CLI Tools require PHP 7.1 version or higher. Your current PHP version is: %s\n",
         PHP_VERSION
     ));
 

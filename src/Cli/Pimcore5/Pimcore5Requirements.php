@@ -19,7 +19,7 @@ use Symfony\Requirements\RequirementCollection;
 
 class Pimcore5Requirements extends RequirementCollection
 {
-    const REQUIRED_PHP_VERSION = '7.0.0';
+    const REQUIRED_PHP_VERSION = '7.1.0';
 
     public function __construct()
     {
