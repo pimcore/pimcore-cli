@@ -429,10 +429,7 @@ class MigrateFilesystemCommand extends AbstractCommand
     private function checkVersionPrerequisites(VersionReader $versionReader)
     {
         $version = $versionReader->getVersion();
-
-        if (version_compare($version, '5', '>=')) {
-            throw new \RuntimeException(sprintf('Installation is already is already version %s...aborting', $version));
-        }
+        $version = trim($version, 'v ');
 
         if (version_compare($version, '4.6', '<')) {
             throw new \RuntimeException(sprintf('Current version: %s. Please update to version 4.6 before upgrading to version 5', $version));
