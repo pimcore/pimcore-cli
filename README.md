@@ -1,8 +1,6 @@
-# Pimcore CLI Tools
+# Pimcore v4 to v5 Migration Tools
 
 [![Build Status](https://travis-ci.org/pimcore/pimcore-cli.svg?branch=master)](https://travis-ci.org/pimcore/pimcore-cli)
-
-A collection of command line tools for managing Pimcore installations.
 
 ## Download
 
