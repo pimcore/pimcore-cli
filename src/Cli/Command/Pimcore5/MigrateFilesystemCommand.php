@@ -208,7 +208,7 @@ class MigrateFilesystemCommand extends AbstractCommand
      */
     private function extractZip(): self
     {
-        $zipContent = file_get_contents('https://github.com/pimcore/skeleton/archive/v2.0.2.zip');
+        $zipContent = file_get_contents('https://github.com/pimcore/skeleton/archive/v1.3.0.zip');
         $zipFile = $this->path('pimcore-skeleton.zip');
         file_put_contents($zipFile, $zipContent);
 
